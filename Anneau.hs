@@ -22,7 +22,8 @@ instance Anneau Z2 where
     mul (Z2 a) (Z2 b) = Z2 $ a*b
 
 
-data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de type a :(a0,a1,a2...an)
+data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
+-- polynome a0 + a1X+ a2X² ...
 
 completeListe::(Anneau a )=> [a] ->Int-> [a]
 completeListe l 0 = l
