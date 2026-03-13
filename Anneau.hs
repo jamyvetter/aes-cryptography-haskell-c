@@ -22,10 +22,22 @@ instance Anneau Z2 where
     mul (Z2 a) (Z2 b) = Z2 $ a*b
 
 
-data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de type a :(..,a1,a0)
+data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de type a :(a0,a1,a2,...)
 
 addp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
 addp (Polynome l1) (Polynome l2) = Polynome (addL l1 l2)
+
+
+
+
+completeliste :: (Anneau a) => [a] -> Int -> [a]
+completeliste l 0 = l 
+completeliste l n = completeliste (l++[zero]) (n-1)
+
+
+
+
+
 
 addL::(Anneau a ) => [a]->[a]->[a]
 addL [] _ = []
