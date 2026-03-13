@@ -22,22 +22,45 @@ instance Anneau Z2 where
     mul (Z2 a) (Z2 b) = Z2 $ a*b
 
 
-data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de type a :(..,a1,a0)
+data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de type a :(a0,a1,a2...an)
+
+completeListe::(Anneau a )=> [a] ->Int-> [a]
+completeListe l 0 = l
+completeListe l n = completeListe (l++[zero]) (n-1)
+
+
 
 addp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
-addp (Polynome l1) (Polynome l2) = Polynome (addL l1 l2)
+addp (Polynome l1) (Polynome l2) | diff>0 = Polynome (addL l1 l2')
+                                 | diff <0 = Polynome (addL l1' l2)
+                                 | otherwise = Polynome (addL l1 l2)  
+                                  where l2'= completeListe l2 diff; l1' = completeListe l1 (-diff); diff=(length l1) - (length l2) 
+
 
 addL::(Anneau a ) => [a]->[a]->[a]
 addL [] _ = []
 addL _ [] = []
 addL (x:xs) (y:ys) = (add x y) : addL xs ys
 
+{--
+mulL::(Anneau a ) => [a]->[a]->[a]
+mulL [] _ = []
+mulL _ [] = []
+mulL (x:xs) (y:ys) = (mul x y) : mulL xs ys
+
+mulp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
+mulp (Polynome l1) (Polynome l2) | diff>0 = Polynome (mulL l1 l2')
+                                 | diff <0 = Polynome (mulL l1' l2)
+                                 | otherwise = Polynome (mulL l1 l2)  
+                                  where l2'= completeListe l2 diff; l1' = completeListe l1 (-diff); diff=(length l1) - (length l2) 
+
+--}
 
 instance (Anneau a) => Anneau (Polynome a) where
     zero = Polynome [zero]
     un = Polynome [un]
     add = addp 
-    --mul (Polynome [a:as]) (Polynome [b:bs]) = (mul a b ): (mulp (Polynome as) (Polynome bs))
+    --mul = mulp
 
 
 

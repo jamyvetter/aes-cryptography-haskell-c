@@ -4,3 +4,14 @@ l1= [Z2 1, Z2 1, Z2 0]
 l2= [Z2 0, Z2 1, Z2 0]
 
 addL l1 l2
+
+
+
+
+
+
+
+p1= Polynome [Z2 1,Z2 1,Z2 0,Z2 0,Z2 1]
+p2= Polynome [Z2 1,Z2 0,Z2 1]
+addp p1 p2
+--mulp p1 p2
