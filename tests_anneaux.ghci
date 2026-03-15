@@ -2,19 +2,39 @@
 
 
 l0= [Z2 0]
-l1= [Z2 1, Z2 1, Z2 0]
-l2= [Z2 0, Z2 1, Z2 0]
+l1= [Z2 1, Z2 1]
+l2= [Z2 0, Z2 1]
 
 addL l1 l2
--- Doit renvoyer  [Z2 1, Z2 0, Z2 0]
-
-addL l0 l1
--- Doit renvoyer [Z2 1]
+-- Doit renvoyer  [Z2 1, Z2 0]
 
 
+completeliste [Z2 1, Z2 0, Z2 0, Z2 0, Z2 1] 5-- Doit renvoyer [Z2 1,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0,Z2 0,Z2 0]
+completeliste [Z2 1, Z2 0, Z2 0] 0-- Doit renvoyer [Z2 1,Z2 0,Z2 0]
 
-completeliste [Z2 1, Z2 0, Z2 0, Z2 0, Z2 1] 5
--- Doit renvoyer [Z2 1,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0,Z2 0,Z2 0]
+p1::Polynome Z2
+p0= Polynome l0
+p1= Polynome l1
+p2= Polynome l2
+addp p0 p1 -- Polynome [Z2 1,Z2 1]
+addp p1 p0 -- Polynome [Z2 1,Z2 1]
+addp p1 p2 -- Polynome [Z2 1,Z2 0]
 
-completeliste [Z2 1, Z2 0, Z2 0] 0
--- Doit renvoyer [Z2 1,Z2 0,Z2 0]
+--Mutliplication de polynomes
+mulp p0 p1 -- Polynome [Z2 0], ou pleins de zeros
+mulp p1 p0 -- Polynome [Z2 0]
+mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1]
+mulp (Polynome [Z2 1, Z2 0,Z1 0,Z2 1]) (Polynome [Z2 0, Z2 0,Z1 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1])
+--  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
+
+M= Polynome [Z2 1,Z2 1,Z2 0,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 1]
+de_pol (Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) M-- Polynome [Z2 0,Z2 0,Z2 1,Z2 1,Z2 1,Z2 1,Z2 1]
+
+de_pol p1 M -- p1
+de_pol p2 M -- p2
+de_pol p2 p2 -- zerop
+
+
+
+
+
