@@ -1,6 +1,3 @@
-
-
-
 class Anneau a where
     zero :: a
     un :: a
@@ -25,10 +22,10 @@ instance Anneau Z2 where
 data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
 -- polynome a0 + a1X+ a2X² ...
 
+--Fonction utilitaire pour compléter les termes de degré manquant pour un polynome
 completeListe::(Anneau a )=> [a] ->Int-> [a]
 completeListe l 0 = l
 completeListe l n = completeListe (l++[zero]) (n-1)
-
 
 
 addp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
@@ -66,8 +63,6 @@ instance (Anneau a) => Anneau (Polynome a) where
 
 
 
-
-
 {--
 type GF2X=Polynome Z2
 
@@ -89,16 +84,57 @@ instance Poly Z2 where
 
 
 
---d_euc_pol:: (Polynome P) -> (Polynome M) -> (Polynome R) 
+--
+
+--}
+
+--Effectue le d.e du premier polynome(P) par le second(M), renvoie le couple (Q,R)
+--de_pol::(Anneau a ) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
+--de_pol (Polynome P) (Polynome M) = 
 
 
+--Calcule Euclide etendu pour des polynomes de Z2/Z
 
 
-plusieurs façons de definir les polynomes
+{--
+Pseudo code Euclide etendu:
+
+Entrée : a,b Polynomes de Z2
+Sortie : r Polynome de Z2 et  u, v Polynomes de Z2 tels que r = pgcd(a, b) et r = a*u+b*v
+
+Initialisation : r := a, r' := b, u := 1, v := 0, u' := 0, v' := 1
+                  q  quotient entier
+                  rs, us, vs  variables de stockage intermédiaires
+
+les égalités r = a*u+b*v et r' = a*u'+b*v' sont des invariants de boucle
+
+tant que (r' ≠ 0) faire
+    q := r÷r'
+    rs := r, us := u, vs := v,
+    r := r', u := u', v := v',
+    r' := rs - q*r', u' := us - q*u', v' := vs - q*v'
+   fait
+renvoyer (r, u, v)
+
+(source wikipedia)
+   
+En Haskell:
+
+Euclide (a,b)= initalisation puis appel de aux()
 
 
-ensuite on instancie dans Anneau
-
+fonction aux: les ' représentent l'etat précédent de la variable (u_prec=u')
+aux(r',r,u',u,v',v) | r==0 retourner (r',u',v')
+                    | otherwise retourner aux(r',u',v') where (les variables changent une fois puis appel recursif pour check si r==0)
+                    
+                    (q,reste)= de_p(r',r)
+                    r' = r; r=reste
+                    maj coeff Bezout: tempU= u; u=u'+ (q*u); u'=tempu
+                                     tempV= v; v=v'+ (q*v); v'=tempu
 
 
 --}
+
+
+
+
