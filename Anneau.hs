@@ -10,7 +10,7 @@ instance Anneau Integer where
     add = (+)
     mul = (*)
 
-data Z2 = Z2 Integer deriving (Show)
+data Z2 = Z2 Integer deriving (Show, Eq)
 
 instance Anneau Z2 where
     zero = Z2 0
@@ -19,46 +19,50 @@ instance Anneau Z2 where
     mul (Z2 a) (Z2 b) = Z2 $ a*b
 
 
-data Polynome a = Polynome [a] deriving (Show) -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
+data Polynome a = Polynome [a] deriving (Show, Eq) -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
 -- polynome a0 + a1X+ a2X² ...
 
 --Fonction utilitaire pour compléter les termes de degré manquant pour un polynome
-completeListe::(Anneau a )=> [a] ->Int-> [a]
+{- completeListe :: (Anneau a )=> [a] ->Int-> [a]
 completeListe l 0 = l
 completeListe l n = completeListe (l++[zero]) (n-1)
+-}
 
-
-addp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
+{- addp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
 addp (Polynome l1) (Polynome l2) | diff>0 = Polynome (addL l1 l2')
                                  | diff <0 = Polynome (addL l1' l2)
                                  | otherwise = Polynome (addL l1 l2)  
                                   where l2'= completeListe l2 diff; l1' = completeListe l1 (-diff); diff=(length l1) - (length l2) 
+-}
 
+addp :: (Anneau a) => Polynome a -> Polynome a -> Polynome a
+addp (Polynome l1) (Polynome l2) = Polynome (addL l1 l2)
 
-addL::(Anneau a ) => [a]->[a]->[a]
-addL [] _ = []
-addL _ [] = []
+addL :: (Anneau a) => [a] -> [a] -> [a]
+addL [] ys = ys
+addL xs [] = xs
 addL (x:xs) (y:ys) = (add x y) : addL xs ys
 
-{--
+
 mulL::(Anneau a ) => [a]->[a]->[a]
 mulL [] _ = []
 mulL _ [] = []
-mulL (x:xs) (y:ys) = (mul x y) : mulL xs ys
+--mulL (x:xs) (y:ys) = (mul x y) : mulL xs ys
+mulL (x:xs) ys = addL (map (\y -> mul x y) ys) (zero : mulL xs ys)
 
 mulp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
-mulp (Polynome l1) (Polynome l2) | diff>0 = Polynome (mulL l1 l2')
+{-mulp (Polynome l1) (Polynome l2) | diff>0 = Polynome (mulL l1 l2')
                                  | diff <0 = Polynome (mulL l1' l2)
                                  | otherwise = Polynome (mulL l1 l2)  
                                   where l2'= completeListe l2 diff; l1' = completeListe l1 (-diff); diff=(length l1) - (length l2) 
-
---}
+-}
+mulp (Polynome l1) (Polynome l2) = Polynome (mulL l1 l2)
 
 instance (Anneau a) => Anneau (Polynome a) where
     zero = Polynome [zero]
     un = Polynome [un]
     add = addp 
-    --mul = mulp
+    mul = mulp
 
 
 
@@ -138,3 +142,41 @@ aux(r',r,u',u,v',v) | r==0 retourner (r',u',v')
 
 
 
+{-
+Pseudo-code division euclidienne de Polynomes
+
+fonction de_pol(A, B):
+
+    si  B == 0 :
+        Erreur("Division par un polynôme nul impossible") -- On refuse immédiatement la division par le polynôme nul.
+
+    
+    Si A == 0 :
+        Retourner (0, 0) -- si A est nul calcul deja fini
+
+
+    dA = degre(A)
+    dB = degre(B)
+
+
+    Si dA < dB :
+        Retourner (0, A)   on ne peut plus rien diviser donc q = 0 et r=A
+
+
+    diff = dA - dB
+
+    Q_actuel = creer_monome(diff)   -- X^diff
+
+
+    B_decale = decaler_polynome(B, diff) --ajouter "diff" zéro au debut
+
+    A_reduit = simplifier(A + B_decale) -- enleve les zeros créés à la fin
+
+
+    (Q_suite, R_final) = de_pol(A_reduit, B)
+
+    Q_final = Q_actuel + Q_suite
+
+    Retourner (Q_final, R_final)
+
+-}
