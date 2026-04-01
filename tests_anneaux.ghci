@@ -1,6 +1,6 @@
 
 
-
+print "Debut des test"
 l0= [Z2 0]
 l1= [Z2 1, Z2 1]
 l2= [Z2 0, Z2 1]
