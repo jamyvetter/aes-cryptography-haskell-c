@@ -1,3 +1,5 @@
+{- HLINT ignore "Use camelCase" -}
+{- HLINT ignore "Use newtype instead of data" -}
 class Anneau a where
     zero :: a
     un :: a
@@ -47,7 +49,6 @@ addL (x:xs) (y:ys) = (add x y) : addL xs ys
 mulL::(Anneau a ) => [a]->[a]->[a]
 mulL [] _ = []
 mulL _ [] = []
---mulL (x:xs) (y:ys) = (mul x y) : mulL xs ys
 mulL (x:xs) ys = addL (map (\y -> mul x y) ys) (zero : mulL xs ys)
 
 mulp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
@@ -69,7 +70,37 @@ instance (Anneau a) => Anneau (Polynome a) where
 
 type GF2X=Polynome Z2 -- raccourci/ allias pour les polynomes d'elements Z2
 
+data GF28 = GF28 GF2X deriving (Show, Eq)-- definit un nouveau type avec constructeur pour les polynomes de Z/2Z de degré 7.
+
+instance Anneau GF28 where
+    zero= GF28 zero
+    un = GF28 un
+    add= add_gf28
+    mul = mul_gf28 
+
+
+m :: Polynome Z2
 m = Polynome [Z2 1,Z2 1,Z2 0,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 1]
+
+add_gf28:: GF28 -> GF28 -> GF28
+add_gf28 (GF28 a) (GF28 b)= GF28 (add a b)
+
+mul_gf28 :: GF28 -> GF28 -> GF28
+mul_gf28 (GF28 a) (GF28 b)= GF28 r where (_,r)= (de_pol (mul a b) m )
+
+
+class Anneau a => Corps a where
+    inv :: a->a
+
+instance Corps GF2X where
+    inv = inv_p
+
+
+--Fonction d'inversion de polynomes, quand ceux-ci sont premiers avec m
+inv_p :: GF2X-> GF2X
+inv_p p= u where (pgcd,u,v)= euclide (p ,m) 
+
+
 {-
 
 
@@ -82,45 +113,6 @@ instance Anneau GF2X_8 where
     add = addp
     mul = mulp -- apres c'est division euclidienne avec m et on prend le reste
 -}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---A enlever bullshit
-{-
-class Poly a where
-    zerop :: Polynome a
-    unp:: Polynome a
-    addp :: Polynome a -> Polynome a -> Polynome a
-    mulp :: Polynome a -> Polynome a -> Polynome a
-
-
-instance Poly Z2 where
-    zerop = Polynome [zero]
-    unp = Polynome [un]
-    addp (Polynome [a:as]) (Polynome [b:bs]) = (add a b ) : (addp (Polynome as) (Polynome bs))
-    mulp (Polynome [a:as]) (Polynome [b:bs]) = (mul a b ): (mulp (Polynome as) (Polynome bs))
---}
-
-
---Effectue le d.e du premier polynome(P) par le second(M), renvoie le couple (Q,R)
---de_pol::(Anneau a ) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
---de_pol (Polynome P) (Polynome M) = 
-
-
---Calcule Euclide etendu pour des polynomes de Z2/Z
 
 
 {--
@@ -167,7 +159,7 @@ aux(r',r,u',u,v',v) | r==0 retourner (r',u',v')
 -- Prend deux polynômes A,B et renvoie les polynomes d'Euclide etendu: (pgcd, U, V)
 euclide:: (GF2X,GF2X) -> (GF2X,GF2X,GF2X)
 euclide (a,b) = (r,u,v) where
-                                (r,x,u,y,v,z)= aux (b,a,zero,un,un,zero) -- fait l'initialisation
+                                (r,_,u,_,v,_)= aux (a,b,un,zero,zero,un) -- fait l'initialisation
 
 
 aux :: (GF2X,GF2X,GF2X,GF2X,GF2X,GF2X)->(GF2X,GF2X,GF2X,GF2X,GF2X,GF2X)
@@ -177,9 +169,9 @@ aux (r',r,u',u,v',v)| r==zero = (r',r,u',u,v',v) -- on revoie tous les coeffs, l
                     (q,reste)= de_pol r' r--de_p(r',r)
                     r_prec = r;
                     tempu= u; u_nv= add u' (mul q u); u_prec=tempu
-                    tempv= v; v_nv= add v' (mul q v); v_prec=tempu
+                    tempv= v; v_nv= add v' (mul q v); v_prec=tempv
 
-
+--Calcule le degré d'un polynome
 degre :: (Anneau a, Eq a) => Polynome a -> Int
 degre (Polynome l) = simeon (reverse l) (length l - 1)
   where
@@ -193,7 +185,7 @@ completeListe :: (Anneau a )=> [a] ->Int-> [a]
 completeListe l 0 = l
 completeListe l n = completeListe ([zero]++l) (n-1)
 
-
+--Effectue la division euclidienne de polynomes
 de_pol :: (Anneau a, Eq a) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
 de_pol a b 
     | degre b == -1 = error "Division par un polynôme nul impossible"
@@ -219,14 +211,3 @@ de_pol a b
     (qSuite, rFinal) = de_pol aReduit b
 
 
-{-
-class Corps a where
-    zero :: a
-    un :: a
-    add :: a -> a -> a
-    mul :: a -> a -> a
-    inv :: a -> a
--}
-
---Fonction d'inversion de polynomes, quand ceux-ci sont premiers avec m
-inv_p p= u where (pgcd,u,v)= euclide (p ,m) 

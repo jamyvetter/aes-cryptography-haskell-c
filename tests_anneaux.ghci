@@ -65,6 +65,22 @@ de_pol p2 m -- (zero,p2)
 de_pol p2 p2 -- (un, zero)
 
 print "Euclide etendu"
-euclide (p2,p3) -- (GF2X [Z2 0, Z2 1], zero, un  ) --- car X² ^ X = X et X= X*1 + 0*X²
+euclide (p3,p2) -- (GF2X [Z2 0, Z2 1], zero, un  ) --- car X² ^ X = X et X= X*1 + 0*X²
 euclide (p2,p3) -- (GF2X [Z2 0, Z2 1], un, zero )
 
+
+-- Définition de polynomes arbitraires de GF28
+
+q0 = GF28 (Polynome l0)  -- (Polynome nul)
+q10 = GF28 (Polynome l1) -- 1 + X
+q1 = GF28 (Polynome l2 )-- X
+q2 = GF28 (Polynome [Z2 0,Z2 0,Z2 1]) -- X²
+q7 = GF28 (Polynome [Z2 0,Z2 0,Z2 0, Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) -- X⁷
+
+add q1 q0 --
+add q1 q2 --
+
+mul q1 q0 --
+mul q7 q1 --GF28 [1,1,0,1,1,0,0,0,0] car ? mais ça marche oh
+mul (GF28 (Polynome [Z2 1, Z2 0, Z2 0,Z2 1])) (GF28 (Polynome [Z2 0, Z2 0, Z2 0,Z2 0,Z2 1, Z2 0,Z2 0,Z2 1]))== GF28(Polynome [Z2 0,Z2 0,Z2 1,Z2 1,Z2 1,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 0])
+--c'est l'exemple du diapo, ouf ça fonctionne !
