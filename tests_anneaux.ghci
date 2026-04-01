@@ -46,6 +46,15 @@ mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1] (X + X²)
 mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1])
 --  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
 
+
+degré (p1) 
+degré (p2)
+degré (Polynome [Z2 0,Z2 0,Z2 0,Z2]) 
+degré (Polynome [Z2 0,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2])
+
+
+
+
 m = Polynome [Z2 1,Z2 1,Z2 0,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 1]
 
 

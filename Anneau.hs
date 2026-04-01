@@ -22,11 +22,7 @@ instance Anneau Z2 where
 data Polynome a = Polynome [a] deriving (Show, Eq) -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
 -- polynome a0 + a1X+ a2X² ...
 
---Fonction utilitaire pour compléter les termes de degré manquant pour un polynome
-{- completeListe :: (Anneau a )=> [a] ->Int-> [a]
-completeListe l 0 = l
-completeListe l n = completeListe (l++[zero]) (n-1)
--}
+
 
 {- addp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
 addp (Polynome l1) (Polynome l2) | diff>0 = Polynome (addL l1 l2')
@@ -67,10 +63,10 @@ instance (Anneau a) => Anneau (Polynome a) where
 
 
 
-{--
+
 type GF2X=Polynome Z2
 
-
+{-
 class Poly a where
     zerop :: Polynome a
     unp:: Polynome a
@@ -83,14 +79,8 @@ instance Poly Z2 where
     unp = Polynome [un]
     addp (Polynome [a:as]) (Polynome [b:bs]) = (add a b ) : (addp (Polynome as) (Polynome bs))
     mulp (Polynome [a:as]) (Polynome [b:bs]) = (mul a b ): (mulp (Polynome as) (Polynome bs))
-
-
-
-
-
---
-
 --}
+
 
 --Effectue le d.e du premier polynome(P) par le second(M), renvoie le couple (Q,R)
 --de_pol::(Anneau a ) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
@@ -141,10 +131,48 @@ aux(r',r,u',u,v',v) | r==0 retourner (r',u',v')
 
 
 
-
 {-
 Pseudo-code division euclidienne de Polynomes
+-}
 
+degre :: (Anneau a, Eq a) => Polynome a -> Int
+degre (Polynome l) = simeon (reverse l) (length l - 1)
+  where
+    simeon [] _ = -1
+    simeon (x:xs) d
+        | x == zero = simeon xs (d - 1)
+        | otherwise = d
+
+
+completeListe :: (Anneau a )=> [a] ->Int-> [a]
+completeListe l 0 = l
+completeListe l n = completeListe ([zero]++l) (n-1)
+
+de_pol :: (Anneau a, Eq a) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
+de_pol a b 
+    | degre b == -1 = error "Division par un polynôme nul impossible"
+    | degre a == -1 = (zero, zero)
+    | dA < dB       = (zero, a)
+    | otherwise     = (add qActuel qSuite, rFinal)
+  where
+    dA = degre a
+    dB = degre b
+    diff = dA - dB
+    
+    -- q_actuel = X^diff
+    qActuel = Polynome (replicate diff zero ++ [un])
+    
+    -- b_decale = B * X^diff (on ajoute 'diff' zéros au début de la liste)
+    (Polynome listB) = b
+    bDecale = Polynome (completeListe listB diff)
+    
+    -- Dans Z2, l'addition de a et bDecale équivaut à une soustraction, ce qui annule le terme de plus haut degré
+    aReduit = add a bDecale
+    
+    -- Appel récursif sur le reste
+    (qSuite, rFinal) = de_pol aReduit b
+
+{-
 fonction de_pol(A, B):
 
     si  B == 0 :
