@@ -9,10 +9,10 @@ addL l1 l2
 -- Doit renvoyer  [Z2 1, Z2 0]
 
 
-completeListe [Z2 1, Z2 0, Z2 0, Z2 0, Z2 1] 5
+--completeListe [Z2 1, Z2 0, Z2 0, Z2 0, Z2 1] 5
 -- Doit renvoyer [Z2 1,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0,Z2 0,Z2 0]
 
-completeListe [Z2 1, Z2 0, Z2 0] 0
+--completeListe [Z2 1, Z2 0, Z2 0] 0
 -- Doit renvoyer [Z2 1,Z2 0,Z2 0]
 
 
@@ -26,9 +26,9 @@ completeListe [Z2 1, Z2 0, Z2 0] 0
 -- Définition de polynomes arbitraires
 
 p0 = Polynome l0  -- (Polynome nul)
-p1 = Polynome l1 -- (1 + X)
-p2 = Polynome l2 -- (X)
-
+p1 = Polynome l1 -- 1 + X
+p2 = Polynome l2 -- X
+p3= Polynome [Z2 0,Z2 0,Z2 1] -- X²
 
 -- Addition de polynomes
 
@@ -37,27 +37,26 @@ addp p0 p1 -- Polynome [Z2 1,Z2 1]
 addp p1 p0 -- Polynome [Z2 1,Z2 1]
 addp p1 p2 -- Polynome [Z2 1,Z2 0]
 
-
+print "Mutliplication"
 -- Mutliplication de polynomes
 
-mulp p0 p1              -- Doit renvoyer Polynome [Z2 0], ou pleins de zeros
-mulp p1 p0 -- Polynome [Z2 0] (Polynome nul)
-mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1] (X + X²)
-mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1])
---  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
-
-m = Polynome [Z2 1,Z2 1,Z2 0,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 1]
+mulp p0 p1              -- Doit renvoyer Polynome [Z2 0], ou plus de zeros
+mulp p1 p0 -- Polynome [Z2 0]                               (Polynome nul)
+mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1]                   (X + X²)
+mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1]) --  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
 
 
 
-de_pol (Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) m
+
+
+--de_pol (Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) m
 -- Polynome [Z2 0,Z2 0,Z2 1,Z2 1,Z2 1,Z2 1,Z2 1]
 
-de_pol p1 m -- p1
-de_pol p2 m -- p2
-de_pol p2 p2 -- zerop
+--de_pol p1 m -- p1
+--de_pol p2 m -- p2
+--de_pol p2 p2 -- zerop
 
 
-
-
+euclide (p2,p3) -- (GF2X [Z2 0, Z2 1], zero, un  ) --- car X² ^ X = X et X= X*1 + 0*X²
+euclide (p2,p3) -- (GF2X [Z2 0, Z2 1], un, zero )
 

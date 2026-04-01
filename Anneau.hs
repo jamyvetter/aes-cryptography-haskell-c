@@ -21,6 +21,10 @@ instance Anneau Z2 where
 
 data Polynome a = Polynome [a] deriving (Show, Eq) -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
 -- polynome a0 + a1X+ a2X² ...
+--Nous donne aussi le constructeur Polynome 
+
+
+
 
 --Fonction utilitaire pour compléter les termes de degré manquant pour un polynome
 {- completeListe :: (Anneau a )=> [a] ->Int-> [a]
@@ -51,13 +55,14 @@ mulL _ [] = []
 mulL (x:xs) ys = addL (map (\y -> mul x y) ys) (zero : mulL xs ys)
 
 mulp ::(Anneau a ) => Polynome a -> Polynome a -> Polynome a
+mulp (Polynome l1) (Polynome l2) = Polynome (mulL l1 l2)
 {-mulp (Polynome l1) (Polynome l2) | diff>0 = Polynome (mulL l1 l2')
                                  | diff <0 = Polynome (mulL l1' l2)
                                  | otherwise = Polynome (mulL l1 l2)  
                                   where l2'= completeListe l2 diff; l1' = completeListe l1 (-diff); diff=(length l1) - (length l2) 
 -}
-mulp (Polynome l1) (Polynome l2) = Polynome (mulL l1 l2)
 
+--On met les elements de type Polynome a dans la classe Anneau, avec les operations associées
 instance (Anneau a) => Anneau (Polynome a) where
     zero = Polynome [zero]
     un = Polynome [un]
@@ -66,11 +71,38 @@ instance (Anneau a) => Anneau (Polynome a) where
 
 
 
+type GF2X=Polynome Z2 -- raccourci/ allias pour les polynomes d'elements Z2
 
-{--
-type GF2X=Polynome Z2
+{-
 
 
+type GF2X_8= Polynome Z2 -- ces polynomes sont de degres < a 8
+
+m = Polynome [Z2 1,Z2 1,Z2 0,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 1]
+instance Anneau GF2X_8 where    
+    zero = Polynome [zero]
+    un = Polynome [un]
+    add = addp
+    mul = mulp -- apres c'est division euclidienne avec m et on prend le reste
+-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--A enlever bullshit
+{-
 class Poly a where
     zerop :: Polynome a
     unp:: Polynome a
@@ -83,14 +115,9 @@ instance Poly Z2 where
     unp = Polynome [un]
     addp (Polynome [a:as]) (Polynome [b:bs]) = (add a b ) : (addp (Polynome as) (Polynome bs))
     mulp (Polynome [a:as]) (Polynome [b:bs]) = (mul a b ): (mulp (Polynome as) (Polynome bs))
+-}
 
 
-
-
-
---
-
---}
 
 --Effectue le d.e du premier polynome(P) par le second(M), renvoie le couple (Q,R)
 --de_pol::(Anneau a ) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
@@ -104,7 +131,7 @@ instance Poly Z2 where
 Pseudo code Euclide etendu:
 
 Entrée : a,b Polynomes de Z2
-Sortie : r Polynome de Z2 et  u, v Polynomes de Z2 tels que r = pgcd(a, b) et r = a*u+b*v
+Sortie : (r,u,v) Polynome de Z2 et  u, v Polynomes de Z2 tels que r = pgcd(a, b) et r = a*u+b*v
 
 Initialisation : r := a, r' := b, u := 1, v := 0, u' := 0, v' := 1
                   q  quotient entier
@@ -139,8 +166,24 @@ aux(r',r,u',u,v',v) | r==0 retourner (r',u',v')
 
 --}
 
+--{-
 
 
+euclide:: (GF2X,GF2X) -> (GF2X,GF2X,GF2X)
+euclide (a,b) = (r,u,v) where
+                                (r,x,u,y,v,z)= aux (b,a,zero,un,un,zero) -- fait l'initialisation
+
+
+aux :: (GF2X,GF2X,GF2X,GF2X,GF2X,GF2X)->(GF2X,GF2X,GF2X,GF2X,GF2X,GF2X)
+aux (r',r,u',u,v',v)| r==zero = (r',r,u',u,v',v) -- on revoie tous les coeffs, les primes seront utilises par euclide
+                    | otherwise = aux (r_prec,reste,u_prec,u_nv,v_prec,v_nv) where
+                    
+                    (q,reste)= (r',r)--de_p(r',r)
+                    r_prec = r;
+                    tempu= u; u_nv= add u' (mul q u); u_prec=tempu
+                    tempv= v; v_nv= add v' (mul q v); v_prec=tempu
+
+--}
 
 {-
 Pseudo-code division euclidienne de Polynomes
