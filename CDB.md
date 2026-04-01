@@ -17,3 +17,11 @@
 
 - Faire la multiplication de polynomes en haskell 
 - Faire le pseudo code de la division euclidienne des polynomes
+
+### Séance 2: 
+--Fait l'implémentation de la division euclidienne, inversion de polynômes, algorithme d'euclide etendu
+
+
+### A faire pour la séance 3:
+
+
