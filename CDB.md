@@ -34,6 +34,7 @@
 #### Siméon
 - [x] Implémentation de l'algorithme d'Euclide étendu (pour les polynômes de Z/2Z).
 - [x] Implémentation de l'inversion de polynômes.
+- [x] Implémentation de la structure de corps, le type GF28 et la multiplication de ses élements (avec un modulo m)
 
 #### Jamyson
 - [x] Implémentation de la division euclidienne de polynômes.
@@ -51,7 +52,7 @@
 #### Siméon & Jamyson
 
 - Travail commun
-  - [ ] Comprendre les 4 fonctions clés de l’algorithme AES  
+  - [ ] Comprendre les 4 fonctions clés de l’algorithme AES, identifier les types demandés, retour et parametres attendus  
   - [ ] Implémenter au moins une de ces fonctions  
 
 
