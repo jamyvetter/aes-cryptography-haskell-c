@@ -44,6 +44,20 @@ mulp p0 p1              -- Doit renvoyer Polynome [Z2 0], ou plus de zeros
 mulp p1 p0 -- Polynome [Z2 0]                               (Polynome nul)
 mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1]                   (X + X²)
 mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1]) --  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
+mulp p0 p1              -- Doit renvoyer Polynome [Z2 0], ou pleins de zeros
+mulp p1 p0 -- Polynome [Z2 0] (Polynome nul)
+mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1] (X + X²)
+mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1])
+--  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
+
+
+degré (p1) 
+degré (p2)
+degré (Polynome [Z2 0,Z2 0,Z2 0,Z2]) 
+degré (Polynome [Z2 0,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2])
+
+
+
 
 
 
