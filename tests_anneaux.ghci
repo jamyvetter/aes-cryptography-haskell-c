@@ -50,27 +50,21 @@ mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1] (X + X²)
 mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1])
 --  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
 
-
-degré (p1) 
-degré (p2)
-degré (Polynome [Z2 0,Z2 0,Z2 0,Z2]) 
-degré (Polynome [Z2 0,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2])
-
-
+print "degre"
+degre (p1) ==1
+degre (p2)==1
+degre (Polynome [Z2 0,Z2 0,Z2 0,Z2 1]) ==3
+degre (Polynome [Z2 0,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0])==4
 
 
+de_pol (Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) m
+Polynome [Z2 0,Z2 0,Z2 1,Z2 1,Z2 1,Z2 1,Z2 1]
 
+de_pol p1 m -- (zero,p1)
+de_pol p2 m -- (zero,p2)
+de_pol p2 p2 -- (un, zero)
 
-
-
---de_pol (Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) m
--- Polynome [Z2 0,Z2 0,Z2 1,Z2 1,Z2 1,Z2 1,Z2 1]
-
---de_pol p1 m -- p1
---de_pol p2 m -- p2
---de_pol p2 p2 -- zerop
-
-
+print "Euclide etendu"
 euclide (p2,p3) -- (GF2X [Z2 0, Z2 1], zero, un  ) --- car X² ^ X = X et X= X*1 + 0*X²
 euclide (p2,p3) -- (GF2X [Z2 0, Z2 1], un, zero )
 

@@ -69,6 +69,7 @@ instance (Anneau a) => Anneau (Polynome a) where
 
 type GF2X=Polynome Z2 -- raccourci/ allias pour les polynomes d'elements Z2
 
+m = Polynome [Z2 1,Z2 1,Z2 0,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 1]
 {-
 
 
@@ -163,7 +164,7 @@ aux(r',r,u',u,v',v) | r==0 retourner (r',u',v')
 
 --{-
 
-
+-- Prend deux polynômes A,B et renvoie les polynomes d'Euclide etendu: (pgcd, U, V)
 euclide:: (GF2X,GF2X) -> (GF2X,GF2X,GF2X)
 euclide (a,b) = (r,u,v) where
                                 (r,x,u,y,v,z)= aux (b,a,zero,un,un,zero) -- fait l'initialisation
@@ -173,16 +174,11 @@ aux :: (GF2X,GF2X,GF2X,GF2X,GF2X,GF2X)->(GF2X,GF2X,GF2X,GF2X,GF2X,GF2X)
 aux (r',r,u',u,v',v)| r==zero = (r',r,u',u,v',v) -- on revoie tous les coeffs, les primes seront utilises par euclide
                     | otherwise = aux (r_prec,reste,u_prec,u_nv,v_prec,v_nv) where
                     
-                    (q,reste)= (r',r)--de_p(r',r)
+                    (q,reste)= de_pol r' r--de_p(r',r)
                     r_prec = r;
                     tempu= u; u_nv= add u' (mul q u); u_prec=tempu
                     tempv= v; v_nv= add v' (mul q v); v_prec=tempu
 
---}
-
-{-
-Pseudo-code division euclidienne de Polynomes
--}
 
 degre :: (Anneau a, Eq a) => Polynome a -> Int
 degre (Polynome l) = simeon (reverse l) (length l - 1)
@@ -257,3 +253,15 @@ fonction de_pol(A, B):
     Retourner (Q_final, R_final)
 
 -}
+
+{-
+class Corps a where
+    zero :: a
+    un :: a
+    add :: a -> a -> a
+    mul :: a -> a -> a
+    inv :: a -> a
+-}
+
+--Fonction d'inversion de polynomes, quand ceux-ci sont premiers avec m
+inv_p p= u where (pgcd,u,v)= euclide (p ,m) 
