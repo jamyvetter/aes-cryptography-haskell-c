@@ -9,11 +9,11 @@ addL l1 l2
 -- Doit renvoyer  [Z2 1, Z2 0]
 
 
---completeListe [Z2 1, Z2 0, Z2 0, Z2 0, Z2 1] 5
--- Doit renvoyer [Z2 1,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0,Z2 0,Z2 0]
+completeListe [Z2 1, Z2 0, Z2 0, Z2 0, Z2 1] 5
+--Doit renvoyer [Z3 1,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0,Z2 0,Z2 0]
 
---completeListe [Z2 1, Z2 0, Z2 0] 0
--- Doit renvoyer [Z2 1,Z2 0,Z2 0]
+completeListe [Z2 1, Z2 0, Z2 0] 0
+--Doit renvoyer [Z2 1,Z2 0,Z2 0]
 
 
 

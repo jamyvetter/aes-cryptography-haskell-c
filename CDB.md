@@ -48,6 +48,10 @@
 
 ## Séance 3 — *À compléter*
 
+### Travail en autonomie (Hors séance)
+- [x] **Jamyson** : Optimisation de la fonction `inv_p` pour gérer les cas d'inexistence de l'inverse (implémentation de `Maybe` et vérification du PGCD).
+- [x] **Jamyson** : Remodelage de la structure du projet (séparation du code en 6 fichiers distincts : `Anneau.hs`, `Z2.hs`, `Polynome.hs`, `GF28.hs`, `Euclide.hs` et `Main.hs`).
+
 ### A. Tâches à réaliser avant la séance
 #### Siméon & Jamyson
 
