@@ -5,21 +5,12 @@ import GF28
 import Polynome
 import Z2
 
---Je vois pas pourquoi tu as changé ça, pour les polynomes de GF28 ils sont tous quand inversibles modulo m et GF2X n'est pas un corps, la structure c'était avec 
---instance Corps GF28 !!!
-
-instance Corps GF2X where
-  inv p = case inv_p p m of
-    Just u -> u
-    Nothing -> error "Polynôme non inversible"
+instance Corps GF28 where
+  inv (GF28 p) = GF28 (inv_p p)
 
 -- Fonction d'inversion de polynomes
-inv_p :: GF2X -> GF2X -> Maybe GF2X
-inv_p p m =
-  let (pgcd, u, v) = euclide (p, m)
-   in if pgcd == un
-        then Just u
-        else Nothing
+inv_p :: GF2X -> GF2X
+inv_p p = u where (pgcd, u, v) = euclide (p, m)
 
 {-
 
