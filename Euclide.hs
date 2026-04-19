@@ -5,6 +5,9 @@ import GF28
 import Polynome
 import Z2
 
+--Je vois pas pourquoi tu as changé ça, pour les polynomes de GF28 ils sont tous quand inversibles modulo m et GF2X n'est pas un corps, la structure c'était avec 
+--instance Corps GF28 !!!
+
 instance Corps GF2X where
   inv p = case inv_p p m of
     Just u -> u
