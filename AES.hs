@@ -17,7 +17,7 @@ instance Anneau GF28X where
   mul = mul_gf28x
 
 add_gf28x :: GF28X -> GF28X -> GF28X
-add_gf28x (GF28X a) (GF28X b) = GF28X (add a b) -- on sort de l'anneau GF28X pour faire l'addition dans l'Anneau GF28
+add_gf28x (GF28X a) (GF28X b) = GF28X (add a b) -- on sort de l'anneau GF28X pour faire l'addition des polynomes.
 
 m_GF28X :: Polynome GF28 -- le polynome X^4 +1
 m_GF28X = Polynome [un, zero, zero, zero, un]
