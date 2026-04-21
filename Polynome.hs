@@ -2,8 +2,16 @@ module Polynome where
 
 import Anneau
 
-data Polynome a = Polynome [a] deriving (Eq) -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
+data Polynome a = Polynome [a] -- definit le type des polynomes de coefficients de type a :(a0,a1,a2...an) correspond au
 -- polynome a0 + a1X+ a2X² ...
+
+-- on modifie l'egalite pour enlever les zeros de tete
+instance (Anneau a, Eq a) => Eq (Polynome a) where
+  (Polynome l1) == (Polynome l2) = nettoyer l1 == nettoyer l2
+
+-- enleve les zeros de tete
+nettoyer :: (Anneau a, Eq a) => [a] -> [a]
+nettoyer l = reverse $ dropWhile (== zero) $ reverse l
 
 affichage_polynome :: (Anneau a, Eq a) => Polynome a -> [Int]
 affichage_polynome (Polynome liste) = map versInt liste
@@ -31,12 +39,6 @@ mulL (x : xs) ys = addL (map (\y -> mul x y) ys) (zero : mulL xs ys)
 mulp :: (Anneau a) => Polynome a -> Polynome a -> Polynome a
 mulp (Polynome l1) (Polynome l2) = Polynome (mulL l1 l2)
 
-{-mulp (Polynome l1) (Polynome l2) | diff>0 = Polynome (mulL l1 l2')
-                                 | diff <0 = Polynome (mulL l1' l2)
-                                 | otherwise = Polynome (mulL l1 l2)
-                                  where l2'= completeListe l2 diff; l1' = completeListe l1 (-diff); diff=(length l1) - (length l2)
--}
-
 -- On met les elements de type Polynome a dans la classe Anneau, avec les operations associées
 instance (Anneau a) => Anneau (Polynome a) where
   zero = Polynome [zero]
@@ -46,12 +48,9 @@ instance (Anneau a) => Anneau (Polynome a) where
 
 -- Calcule le degré d'un polynome
 degre :: (Anneau a, Eq a) => Polynome a -> Int
-degre (Polynome l) = simeon (reverse l) (length l - 1)
-  where
-    simeon [] _ = -1
-    simeon (x : xs) d
-      | x == zero = simeon xs (d - 1)
-      | otherwise = d
+degre (Polynome l) =
+  let l' = nettoyer l
+   in if null l' then -1 else length l' - 1
 
 completeListe :: (Anneau a) => [a] -> Int -> [a]
 completeListe l 0 = l
@@ -69,15 +68,18 @@ de_pol a b
     dB = degre b
     diff = dA - dB
 
-    -- q_actuel = X^diff
-    qActuel = Polynome (replicate diff zero ++ [un])
+    -- 1. on récupère le coefficient de plus haut degré de A
+    (Polynome listA) = a
+    coeffA = listA !! dA
 
-    -- b_decale = B * X^diff (on ajoute 'diff' zéros au début de la liste)
-    (Polynome listB) = b
-    bDecale = Polynome (completeListe listB diff)
+    -- 2. le quotient prend ce coefficient
+    qActuel = Polynome (replicate diff zero ++ [coeffA])
 
-    -- Dans Z2, l'addition de a et bDecale équivaut à une soustraction, ce qui annule le terme de plus haut degré
+    -- 3. on utilise la multiplication de l'anneau pour décaler ET mettre à l'échelle B
+    bDecale = mul b qActuel
+
+    -- 4. l'addition (XOR) de a et bDecale annule le terme de plus haut degré
     aReduit = add a bDecale
 
-    -- Appel récursif sur le reste
+    -- 5. Appel récursif sur le reste
     (qSuite, rFinal) = de_pol aReduit b
