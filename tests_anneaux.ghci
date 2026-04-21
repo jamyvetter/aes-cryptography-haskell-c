@@ -146,3 +146,16 @@ print "KEY EXPANSION"
 print (rotWord col1_entree == GF28X (Polynome [intToGf28 0xa0, intToGf28 0x9a, intToGf28 0xe9, intToGf28 0x19]))
 
 print (subWord col1_entree == col1_sortie_attendue)
+
+
+-- Note : Le résultat de mul peut avoir des zéros de tête tronqués selon de_pol, 
+-- mais Eq sur Polynome/GF28X le gère si la logique est cohérente.
+print (mixColumns [col0_apres_shift] == [col0_apres_mix_attendu])
+
+print "AddRoundKey"
+
+--addRoundKey (addRoundKey base [tt] )[tt] == base -- car xor réversible
+
+print "conversion 16bits-> objet State"
+print (bit_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] == [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])
+print (bit_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] /= [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q0]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])

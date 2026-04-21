@@ -173,7 +173,70 @@ rconList =
   where
     zero_gf28 = intToGf28 0x00
 
--- pseudo code pour key expansion siméon
+--  key expansion
+{-
+Code de keyExpansion adapté de la documantation p20
+Nr: Nombre de ronde, Nr=f(Nk,Nb) Nr=10,12 ou 14
+Nb: nb de colonnes (==nombre de GF28X) dans State fixé ici Nb=4 
+Nk:nombre de GF28X dans la Cipher Key. ici, Nk=4,6 ou 8
+byte:octet, donc un GF28
+word: 4 octets(32-bit), donc un GF28X
+State=[GF28X]
+
+key::[GF28]
+w::[GF28X]
+
+Accéder à un élément en position i: l !! i
+-}
+
+
+{-
+cipher b_in b_out w=
+
+
+hui state (w !! round*nb)
+
+hui=addRoundKey. mixColumns . shiftRows . subBytes
+-}
+
+bit_vers_state:: [GF28]->[GF28X]-- prend b_in qui contient 16 GF28 et donne State (p9), pour C il y aura une formule
+bit_vers_state [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] = [GF28X (Polynome [a,b,c,d]),GF28X (Polynome [e,f,g,h]) ,GF28X (Polynome [i,j,k,l]) ,GF28X (Polynome [m,n,o,p])]
+
+
+{-
+--KeyExpansion(byte key[4*Nk], word w[Nb*(Nr+1)], Nk)
+--renvoie un int car jsp comment autrement
+keyExpansion:: [GF28] -> [GF28X] -> Int -> Int->Int->Int
+keyExpansion key w nk nb nr = (f1 0 nk key w)+(g1 nk nb nr w) 
+
+
+--appliquer f1 à i=0, puis f2 à i =Nk
+
+
+
+--f1(i,Nk,key)--pour coder le premier while, modifie la key
+f1:: Int-> Int-> [GF28] ->[GF28X] -> Int
+f1 i nk key w= if i>=nk then 1 else f1 (i+1) nk key w'
+        where w'=af w i (GF28X (Polynome [ (key !! (4*i)),(key !! 4*i+1),(key !! 4*i+2),(key !! 4*i+3)])) 
+--(key !! (4*i)) lui est de type GF28
+
+--fonction d'affectation (change l[i]=elem et renvoie la liste modifiée), doit exister qq part
+af::[l]->Int->l->[l]
+af liste i elem= l
+
+--fait le deuxieme while
+--g1:: Int->Int->Int->[GF28X] ->Int
+g1 i nb nr w= if (i<nb*(nr+1)) then f2 i nb nr w temp else 1 where temp= w !! (i-1)
+
+
+--f2::  --modifie w apres le while
+f2 i nb nr w temp = g1 (i+1) nb nr w'
+where temp'= if (i 'mod' nk ==0) then temp'= subWord(rotWord temp) add (Rcon !! (i/nk))  else (if (nk>6 && i 'mod' nk==4) then temp'=subWord temp  else temp'=temp);w'=af w i (w !! (i-nk)) add temp' --fait la ligne avant i++s
+
+
+-}
+
+
 
 -- Transformations inverses :
 
