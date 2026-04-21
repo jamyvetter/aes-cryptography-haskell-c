@@ -64,7 +64,7 @@ inv_gf28 octet
 
 -- transformation affine
 -- bi' = bi + b(i+4) [modulo 8] + b(i+5) [modulo 8] + b(i+6) [modulo 8] + b(i+7) [modulo 8] + ci
--- c = {63} = 01100011 ([c7,c6,c5,c4,c3,c2,c1,c0] pour nous)
+-- c = {63} = 01100011 ([c7,c6,c5,c4,c3,c2,c1,c0])
 
 sub_affine :: GF28 -> GF28
 sub_affine (GF28 p) = GF28 (Polynome b')
@@ -92,25 +92,6 @@ subBytesCol (GF28X (Polynome [a0, a1, a2, a3])) = GF28X (Polynome [subByte a0, s
 subBytes :: State -> State
 subBytes state = map subBytesCol state
 
--- SHIFTROWS
-
--- décale circulairement les lignes de la matrice 4x4
-shiftRows :: State -> State
-shiftRows [c0, c1, c2, c3] = [nouvelle_c0, nouvelle_c1, nouvelle_c2, nouvelle_c3]
-  where
-    -- on déballe nos 4 colonnes pour accéder aux 16 octets
-    (GF28X (Polynome [s00, s10, s20, s30])) = c0
-    (GF28X (Polynome [s01, s11, s21, s31])) = c1
-    (GF28X (Polynome [s02, s12, s22, s32])) = c2
-    (GF28X (Polynome [s03, s13, s23, s33])) = c3
-
-    -- on applique la règle de décalage des lignes
-    nouvelle_c0 = GF28X (Polynome [s00, s11, s22, s33])
-    nouvelle_c1 = GF28X (Polynome [s01, s12, s23, s30])
-    nouvelle_c2 = GF28X (Polynome [s02, s13, s20, s31])
-    nouvelle_c3 = GF28X (Polynome [s03, s10, s21, s32])
-shiftRows state = state -- si le state ne fait pas 4 colonnes on fait rien
-
 {-
 VERSION ALTERNATIVE AVEC SBOX.hs
 
@@ -130,6 +111,25 @@ subBytes :: State -> State
 subBytes state = map (mapGF28X subByte) state
 
 -}
+
+-- SHIFTROWS
+
+-- décale circulairement les lignes de la matrice 4x4
+shiftRows :: State -> State
+shiftRows [c0, c1, c2, c3] = [nouvelle_c0, nouvelle_c1, nouvelle_c2, nouvelle_c3]
+  where
+    -- on déballe nos 4 colonnes pour accéder aux 16 octets
+    (GF28X (Polynome [s00, s10, s20, s30])) = c0
+    (GF28X (Polynome [s01, s11, s21, s31])) = c1
+    (GF28X (Polynome [s02, s12, s22, s32])) = c2
+    (GF28X (Polynome [s03, s13, s23, s33])) = c3
+
+    -- on applique la règle de décalage des lignes
+    nouvelle_c0 = GF28X (Polynome [s00, s11, s22, s33])
+    nouvelle_c1 = GF28X (Polynome [s01, s12, s23, s30])
+    nouvelle_c2 = GF28X (Polynome [s02, s13, s20, s31])
+    nouvelle_c3 = GF28X (Polynome [s03, s10, s21, s32])
+shiftRows state = state -- si le state ne fait pas 4 colonnes on fait rien
 
 -- MIXCOLUMNS
 
@@ -216,7 +216,7 @@ intervale_4 i l = take 4 (drop (i*4) l)
 {-
 Code de keyExpansion adapté de la documantation p20
 Nr: Nombre de ronde, Nr=f(Nk,Nb) Nr=10,12 ou 14
-Nb: nb de colonnes (==nombre de GF28X) dans State fixé ici Nb=4 
+Nb: nb de colonnes (==nombre de GF28X) dans State fixé ici Nb=4
 Nk:nombre de GF28X dans la Cipher Key. ici, Nk=4,6 ou 8
 byte:octet, donc un GF28
 word: 4 octets(32-bit), donc un GF28X
@@ -271,3 +271,44 @@ invShiftRows [c0, c1, c2, c3] = [nouvelle_c0, nouvelle_c1, nouvelle_c2, nouvelle
     nouvelle_c2 = GF28X (Polynome [s02, s11, s20, s33])
     nouvelle_c3 = GF28X (Polynome [s03, s12, s21, s30])
 invShiftRows state = state -- si le state ne fait pas 4 colonnes on fait rien
+
+-- inverse de AddRoundKey est trivial car l'opération XOR (addition dans GF(2)) est sa propre inverse : (A XOR B) XOR B = A
+invAddRoundKey :: State -> State -> State
+invAddRoundKey = addRoundKey
+
+-- L'inverse de la transformation affine utilise a_inv(X) = X + X^3 + X^6
+-- suivi de c_inv(X) = 1 + X^2
+invSub_affine :: GF28 -> GF28
+invSub_affine (GF28 p) = GF28 (Polynome b')
+  where
+    a_inv = Polynome [zero, un, zero, un, zero, zero, un, zero]
+    c_inv = Polynome [un, zero, un, zero, zero, zero, zero, zero]
+    m8 = Polynome [un, zero, zero, zero, zero, zero, zero, zero, un]
+
+    (_, r) = de_pol (mul p a_inv) m8
+    (Polynome coeffs_rc) = add r c_inv
+
+    b' = take 8 (coeffs_rc ++ repeat zero)
+
+-- l'inverse applique d'abord l'inverse de la transfo affine puis l'inverse multiplicatif dans GF(2^8)
+invSubByte :: GF28 -> GF28
+invSubByte octet = inv_gf28 (invSub_affine octet)
+
+-- applique invSubByte a chaque octet de la colonne
+invSubBytesCol :: Colonne -> Colonne
+invSubBytesCol (GF28X (Polynome [a0, a1, a2, a3])) = GF28X (Polynome [invSubByte a0, invSubByte a1, invSubByte a2, invSubByte a3])
+
+-- applique invSubBytesCol a chaque colonne du state
+invSubBytes :: State -> State
+invSubBytes state = map invSubBytesCol state
+
+-- INVMIXCOLUMNS
+
+-- le polynôme multiplicateur fixe pour InvMixColumns
+-- a^-1(x) = {0b}x^3 + {0d}x^2 + {09}x + {0e}
+a_inv_mix :: GF28X
+a_inv_mix = GF28X (Polynome [intToGf28 0x0e, intToGf28 0x09, intToGf28 0x0d, intToGf28 0x0b])
+
+-- multiplie modulo m_GF28X (X^4 +1) chaque colonne par a_inv_mix
+invMixColumns :: State -> State
+invMixColumns state = map (\col -> a_inv_mix `mul` col) state
