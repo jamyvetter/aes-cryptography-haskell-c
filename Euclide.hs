@@ -11,7 +11,8 @@ instance Corps GF28 where
 -- Fonction d'inversion de polynomes
 inv_p :: GF2X -> GF2X
 inv_p p = u where (pgcd, u, v) = euclide (p, m)
---N.B: On pourrait changer le type et mettre ::GF28->Gf28 car les polynomes qu'on veut inverser sont ceux du corps GF28 (sauf zero)
+
+-- N.B: On pourrait changer le type et mettre ::GF28->Gf28 car les polynomes qu'on veut inverser sont ceux du corps GF28 (sauf zero)
 
 -- Prend deux polynômes A,B et renvoie les polynomes d'Euclide etendu: (pgcd, U, V)
 euclide :: (GF2X, GF2X) -> (GF2X, GF2X, GF2X)

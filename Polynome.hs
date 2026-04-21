@@ -68,18 +68,18 @@ de_pol a b
     dB = degre b
     diff = dA - dB
 
-    -- 1. on récupère le coefficient de plus haut degré de A
+    -- on récupère le coefficient de plus haut degré de A
     (Polynome listA) = a
     coeffA = listA !! dA
 
-    -- 2. le quotient prend ce coefficient
+    -- le quotient prend ce coefficient
     qActuel = Polynome (replicate diff zero ++ [coeffA])
 
-    -- 3. on utilise la multiplication de l'anneau pour décaler ET mettre à l'échelle B
+    -- on utilise la multiplication de l'anneau pour décaler ET mettre à l'échelle B
     bDecale = mul b qActuel
 
-    -- 4. l'addition (XOR) de a et bDecale annule le terme de plus haut degré
+    -- l'addition (XOR) de a et bDecale annule le terme de plus haut degré
     aReduit = add a bDecale
 
-    -- 5. Appel récursif sur le reste
+    -- appel récursif sur le reste
     (qSuite, rFinal) = de_pol aReduit b

@@ -66,10 +66,10 @@
 - [x] **Validation** : Tests unitaires exécutés en s’appuyant sur les exemples de la documentation.
 - [x] **Refonte de la gestion des polynômes** :
     - **Correction de bug** : Suppression d’une boucle infinie dans `mixColumns`. La division euclidienne a été adaptée pour fonctionner non seulement sur $Z_2$, mais aussi sur les octets ($GF(2^8)$).
-    - **Calculs plus fiables** : Amélioration de `de_pol`, qui utilise désormais le coefficient dominant pour éliminer correctement les termes de plus haut degré.
-    - **Comparaison correcte** : Définition d’une instance `Eq` personnalisée avec une fonction `nettoyer` permettant d’ignorer les zéros en tête, afin d’obtenir un degré cohérent.
+    - **Calculs plus fiables** : Amélioration de `de_pol`.
+    - **Comparaison correcte** : Définition d’une instance `Eq` personnalisée.
 
-> **Note** : Cette évolution rend la division plus générale et permet d’utiliser la gestion des polynômes avec différents corps, ce qui rend le code plus flexible et réutilisable.
+> **Note** : Une version alternative de subBytes utilisant SBox.hs a été codée mais n'est pas utilisée.
 
 #### Siméon
 - [x] **Implémentation AES** : La fonction `addRoundKey`.

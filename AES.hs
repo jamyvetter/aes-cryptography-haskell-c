@@ -4,7 +4,7 @@ import Anneau
 import Euclide
 import GF28
 import Polynome
-import SBox
+-- import SBox
 import Z2
 
 -- Maintenant, on peut définir l'Anneau GF28X == GF(2⁸)[X]: c'est l'anneau quotient GF(2⁸)/(X⁴+1)
@@ -42,8 +42,6 @@ addRoundKey (s : ss) (k : ks) = add_gf28x s k : addRoundKey ss ks -- techniqueme
 
 -- Transformations
 
--- SUBBYTES
-
 -- Fonction GF28 vers Entier
 gf28ToInt :: GF28 -> Int
 gf28ToInt (GF28 (Polynome coeffs)) = sum [fromIntegral val * (2 ^ i) | (Z2 val, i) <- zip coeffs [0 ..]]
@@ -55,20 +53,45 @@ intToGf28 n = GF28 (Polynome (toZ2List n 8))
     toZ2List _ 0 = []
     toZ2List x count = Z2 (toInteger (x `mod` 2)) : toZ2List (x `div` 2) (count - 1)
 
---  applique la sbox à un octet
-subByte :: GF28 -> GF28
-subByte octet = intToGf28 valeurSubstituee
+-- SUBBYTES
+
+-- calcule inverse multiplicatif de l'octet (polynome dans GF28)
+inv_gf28 :: GF28 -> GF28
+inv_gf28 octet
+  | octet == zero = zero -- inverse de {00} est {00}
+  | otherwise = inv octet -- utilise la fonction inv_p de Euclide.hs
+
+-- transformation affine
+-- bi' = bi + b(i+4) [modulo 8] + b(i+5) [modulo 8] + b(i+6) [modulo 8] + b(i+7) [modulo 8] + ci
+-- c = {63} = 01100011 ([c7,c6,c5,c4,c3,c2,c1,c0] pour nous)
+
+sub_affine :: GF28 -> GF28
+sub_affine (GF28 (Polynome coeffs)) = GF28 (Polynome [b0', b1', b2', b3', b4', b5', b6', b7'])
   where
-    index = gf28ToInt octet
-    valeurSubstituee = sbox !! index
+    polynome_rempli = coeffs ++ replicate (8 - length coeffs) zero -- replique le bon nombre de 0 a la fin pour avoir 8 coefs
+    [b0, b1, b2, b3, b4, b5, b6, b7] = take 8 polynome_rempli -- prends les 8 coefs du polynome rempli
+    b0' = b0 `add` b4 `add` b5 `add` b6 `add` b7 `add` un
+    b1' = b1 `add` b5 `add` b6 `add` b7 `add` b0 `add` un
+    b2' = b2 `add` b6 `add` b7 `add` b0 `add` b1 `add` zero
+    b3' = b3 `add` b7 `add` b0 `add` b1 `add` b2 `add` zero
+    b4' = b4 `add` b0 `add` b1 `add` b2 `add` b3 `add` zero
+    b5' = b5 `add` b1 `add` b2 `add` b3 `add` b4 `add` un
+    b6' = b6 `add` b2 `add` b3 `add` b4 `add` b5 `add` un
+    b7' = b7 `add` b3 `add` b4 `add` b5 `add` b6 `add` zero
 
--- applique la fonction subByte à chaque octet de la colonne
-mapGF28X :: (GF28 -> GF28) -> GF28X -> GF28X
-mapGF28X f (GF28X (Polynome coeffs)) = GF28X (Polynome (map f coeffs))
+-- applique inverse puis transfo affine a un octet
 
--- applique la fonction subByte au state ([Colonne])
+subByte :: GF28 -> GF28
+subByte octet = sub_affine (inv_gf28 octet)
+
+-- applique subByte a chaque octet de la colonne
+subBytesCol :: Colonne -> Colonne
+subBytesCol (GF28X (Polynome [a0, a1, a2, a3])) = GF28X (Polynome [subByte a0, subByte a1, subByte a2, subByte a3])
+
+-- applique SubBtesCOL a chaque colonne du state
+
 subBytes :: State -> State
-subBytes state = map (mapGF28X subByte) state
+subBytes state = map subBytesCol state
 
 -- SHIFTROWS
 
@@ -76,18 +99,38 @@ subBytes state = map (mapGF28X subByte) state
 shiftRows :: State -> State
 shiftRows [c0, c1, c2, c3] = [nouvelle_c0, nouvelle_c1, nouvelle_c2, nouvelle_c3]
   where
-    -- 1. on déballe nos 4 colonnes pour accéder aux 16 octets
+    -- on déballe nos 4 colonnes pour accéder aux 16 octets
     (GF28X (Polynome [s00, s10, s20, s30])) = c0
     (GF28X (Polynome [s01, s11, s21, s31])) = c1
     (GF28X (Polynome [s02, s12, s22, s32])) = c2
     (GF28X (Polynome [s03, s13, s23, s33])) = c3
 
-    -- 2. on applique la règle de décalage des lignes
+    -- on applique la règle de décalage des lignes
     nouvelle_c0 = GF28X (Polynome [s00, s11, s22, s33])
     nouvelle_c1 = GF28X (Polynome [s01, s12, s23, s30])
     nouvelle_c2 = GF28X (Polynome [s02, s13, s20, s31])
     nouvelle_c3 = GF28X (Polynome [s03, s10, s21, s32])
 shiftRows state = state -- si le state ne fait pas 4 colonnes on fait rien
+
+{-
+VERSION ALTERNATIVE AVEC SBOX.hs
+
+--  applique la sbox à un octet
+subByte :: GF28 -> GF28
+subByte octet = intToGf28 valeurSubstituee
+  where
+    index = gf28ToInt octet
+    valeurSubstituee = sbox !! index
+
+-- applique une fonction à chaque octet de la colonne
+mapGF28X :: (GF28 -> GF28) -> Colonne -> Colonne
+mapGF28X f (GF28X (Polynome coeffs)) = GF28X (Polynome (map f coeffs))
+
+-- applique la fonction subByte au state ([Colonne])
+subBytes :: State -> State
+subBytes state = map (mapGF28X subByte) state
+
+-}
 
 -- MIXCOLUMNS
 
@@ -109,25 +152,25 @@ rotWord (GF28X (Polynome [a0, a1, a2, a3])) = GF28X (Polynome [a1, a2, a3, a0])
 rotWord col = col -- Sécurité
 
 -- applique la S-Box à chaque octet du mot
-subWord :: GF28X -> GF28X
-subWord col = mapGF28X subByte col
+subWord :: Colonne -> Colonne
+subWord col = subBytesCol col
 
--- la constante de tour (Rcon) pour briser les symétries lors de l'expansion de clé.
--- rconList !! i donne le Rcon du tour i (de 1 à 10 pour AES-128).
+-- la constante de tour (Rcon)
+-- rconList !! i donne le Rcon du tour i
 rconList :: [GF28X]
 rconList =
   [ -- Rcon n'est pas utilisé dans l'algorithme (l'index commence à 1)
     GF28X (Polynome [intToGf28 0x00, zero_gf28, zero_gf28, zero_gf28]),
-    GF28X (Polynome [intToGf28 0x01, zero_gf28, zero_gf28, zero_gf28]), -- Tour 1
-    GF28X (Polynome [intToGf28 0x02, zero_gf28, zero_gf28, zero_gf28]), -- Tour 2
-    GF28X (Polynome [intToGf28 0x04, zero_gf28, zero_gf28, zero_gf28]), -- Tour 3
-    GF28X (Polynome [intToGf28 0x08, zero_gf28, zero_gf28, zero_gf28]), -- Tour 4
-    GF28X (Polynome [intToGf28 0x10, zero_gf28, zero_gf28, zero_gf28]), -- Tour 5
-    GF28X (Polynome [intToGf28 0x20, zero_gf28, zero_gf28, zero_gf28]), -- Tour 6
-    GF28X (Polynome [intToGf28 0x40, zero_gf28, zero_gf28, zero_gf28]), -- Tour 7
-    GF28X (Polynome [intToGf28 0x80, zero_gf28, zero_gf28, zero_gf28]), -- Tour 8
-    GF28X (Polynome [intToGf28 0x1b, zero_gf28, zero_gf28, zero_gf28]), -- Tour 9
-    GF28X (Polynome [intToGf28 0x36, zero_gf28, zero_gf28, zero_gf28]) -- Tour 10
+    GF28X (Polynome [intToGf28 0x01, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x02, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x04, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x08, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x10, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x20, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x40, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x80, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x1B, zero_gf28, zero_gf28, zero_gf28]),
+    GF28X (Polynome [intToGf28 0x36, zero_gf28, zero_gf28, zero_gf28])
   ]
   where
     zero_gf28 = intToGf28 0x00

@@ -100,7 +100,11 @@ print (subByte (intToGf28 0x53) == intToGf28 0xed)
 col1_entree = GF28X (Polynome [intToGf28 0x19, intToGf28 0xa0, intToGf28 0x9a, intToGf28 0xe9])
 col1_sortie_attendue = GF28X (Polynome [intToGf28 0xd4, intToGf28 0xe0, intToGf28 0xb8, intToGf28 0x1e])
 
-print (subBytes [col1_entree] == [col1_sortie_attendue])
+-- test la fonction d'octet par octet subBytesCol sur notre colonne
+print (subBytesCol col1_entree == col1_sortie_attendue)
+
+-- test subBytes appliqué à un State entier (matrice 4x4)
+print (subBytes [col1_entree, col1_entree, col1_entree, col1_entree] == [col1_sortie_attendue, col1_sortie_attendue, col1_sortie_attendue, col1_sortie_attendue])
 
 print "SHIFTROWS"
 
@@ -133,9 +137,12 @@ col0_apres_shift = GF28X (Polynome [intToGf28 0xd4, intToGf28 0xbf, intToGf28 0x
 -- colonne attendue après MixColumns : 04 66 81 e5
 col0_apres_mix_attendu = GF28X (Polynome [intToGf28 0x04, intToGf28 0x66, intToGf28 0x81, intToGf28 0xe5])
 
--- Note : Le résultat de mul peut avoir des zéros de tête tronqués selon de_pol, 
--- mais Eq sur Polynome/GF28X le gère si la logique est cohérente.
-print (mixColumns [col0_apres_shift] == [col0_apres_mix_attendu])
+print (mixColumns [col0_apres_shift, col1_fin, col2_fin, col3_fin] !! 0 == col0_apres_mix_attendu)
 
 
+print "KEY EXPANSION"
 
+
+print (rotWord col1_entree == GF28X (Polynome [intToGf28 0xa0, intToGf28 0x9a, intToGf28 0xe9, intToGf28 0x19]))
+
+print (subWord col1_entree == col1_sortie_attendue)
