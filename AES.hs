@@ -1,3 +1,4 @@
+{- HLINT ignore "Use camelCase" -}
 module AES where
 
 import Anneau
@@ -173,6 +174,44 @@ rconList =
   where
     zero_gf28 = intToGf28 0x00
 
+
+octets_vers_state:: [GF28]->[GF28X]-- prend b_in qui contient 16 GF28 et donne State (p9), pour le code en C il y aura une formule avec les indices
+octets_vers_state [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] = [GF28X (Polynome [a,b,c,d]),GF28X (Polynome [e,f,g,h]) ,GF28X (Polynome [i,j,k,l]) ,GF28X (Polynome [m,n,o,p])]
+
+
+state_vers_octets :: [GF28X] -> [GF28] -- inverse de octets_vers_state
+state_vers_octets [c0, c1, c2, c3] = [s00,s01,s02,s03,s10,s11,s12,s13,s20,s21,s22,s23,s30,s31,s32,s33]
+  where
+    -- on déballe nos 4 colonnes pour accéder aux 16 octets
+    (GF28X (Polynome [s00, s10, s20, s30])) = c0
+    (GF28X (Polynome [s01, s11, s21, s31])) = c1
+    (GF28X (Polynome [s02, s12, s22, s32])) = c2
+    (GF28X (Polynome [s03, s13, s23, s33])) = c3
+
+
+--Note: dans pseudo code y'a une variable out qui ici est le retour de cette fonction
+--J'ai fait les mêmes types que dans le pseudo code mais peut être juste State sans les traductions est plus simple
+--cipher dépend de nr et j'ai fixé Nb=4
+
+cipher:: Int->[GF28]-> [GF28X] -> [GF28]
+cipher nr b_in w= final where state0= octets_vers_state b_in; state1=addRoundKey state0 (intervale_4 0 w); state2= for_round 1 nr state1 w; state3=addRoundKey ((shiftRows . subBytes) state2) (intervale_4 (nr*4) w) ;final=state_vers_octets state3
+
+for_round ::Int->Int-> State -> State->State
+for_round round nr state w = if nr==round then state else for_round (round+1) nr state' w where state'= addRoundKey (mixColumns ( shiftRows ( subBytes state))) (intervale_4 round w)
+
+--ordre du cypher: bit octets_vers_state donne 'job'
+--faire bob= addRoundKey job (intervale_4 0 w)
+--faire la boucle for sur bob : alex= for_round 1 nr bob
+--faire tom=  addRoundKey ((shiftRows . subBytes) alex) (intervale_4 nr*nb)
+--faire le resultat qui vaut sate_vers_bytes tom
+
+
+--il faut une fonction qui recupère l'intervalle demandée d'une liste. On utilise drop et take:
+-- Prend les 4 premiers elements d'une liste à partir de l'indice i*4
+intervale_4 :: Int -> [a] -> [a]
+intervale_4 i l = take 4 (drop (i*4) l)
+
+
 --  key expansion
 {-
 Code de keyExpansion adapté de la documantation p20
@@ -189,52 +228,29 @@ w::[GF28X]
 Accéder à un élément en position i: l !! i
 -}
 
-
-{-
-cipher b_in b_out w=
-
-
-hui state (w !! round*nb)
-
-hui=addRoundKey. mixColumns . shiftRows . subBytes
--}
-
-bit_vers_state:: [GF28]->[GF28X]-- prend b_in qui contient 16 GF28 et donne State (p9), pour C il y aura une formule
-bit_vers_state [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] = [GF28X (Polynome [a,b,c,d]),GF28X (Polynome [e,f,g,h]) ,GF28X (Polynome [i,j,k,l]) ,GF28X (Polynome [m,n,o,p])]
-
-
-{-
---KeyExpansion(byte key[4*Nk], word w[Nb*(Nr+1)], Nk)
---renvoie un int car jsp comment autrement
-keyExpansion:: [GF28] -> [GF28X] -> Int -> Int->Int->Int
-keyExpansion key w nk nb nr = (f1 0 nk key w)+(g1 nk nb nr w) 
-
-
---appliquer f1 à i=0, puis f2 à i =Nk
-
-
-
---f1(i,Nk,key)--pour coder le premier while, modifie la key
-f1:: Int-> Int-> [GF28] ->[GF28X] -> Int
-f1 i nk key w= if i>=nk then 1 else f1 (i+1) nk key w'
-        where w'=af w i (GF28X (Polynome [ (key !! (4*i)),(key !! 4*i+1),(key !! 4*i+2),(key !! 4*i+3)])) 
---(key !! (4*i)) lui est de type GF28
-
---fonction d'affectation (change l[i]=elem et renvoie la liste modifiée), doit exister qq part
+--fonction d'affectation (change l[i]=elem et renvoie la liste modifiée), doit exister qq part-> oui avec drop et take
 af::[l]->Int->l->[l]
-af liste i elem= l
+af liste i elem= take i liste ++ [elem] ++ drop (i+1) liste
+
+--KeyExpansion(byte key[4*Nk] , Nk,Nr) -> word w[Nb*(Nr+1)]
+keyExpansion:: [GF28] -> Int ->Int -> [GF28X]
+keyExpansion key nk nr = wfinal where w1= f1 0 nk key []; wfinal=g1 nk nk nr w1 ;
+
+
+--f1(i,Nk,key)--pour coder le premier while, modifie notre résultat w et le renvoie
+f1:: Int-> Int-> [GF28] ->[GF28X] -> [GF28X]
+f1 i nk key w= if i>=nk then w else f1 (i+1) nk key w'
+        where w'=af w i (GF28X (Polynome [ key !! (4*i),key !! (4*i+1),key !! (4*i+2),key !! (4*i+3)]))
+--(key !! (4*i)) lui est de type GF28, on prend des elements de GF28 du tableau key et on en fait un polynome qu'on place dans w à l'indice i
 
 --fait le deuxieme while
---g1:: Int->Int->Int->[GF28X] ->Int
-g1 i nb nr w= if (i<nb*(nr+1)) then f2 i nb nr w temp else 1 where temp= w !! (i-1)
-
+g1:: Int->Int->Int->[GF28X]-> [GF28X]
+g1 i nk nr w= if i<4*(nr+1) then f2 i nk nr w temp else w where temp= w !! (i-1)
 
 --f2::  --modifie w apres le while
-f2 i nb nr w temp = g1 (i+1) nb nr w'
-where temp'= if (i 'mod' nk ==0) then temp'= subWord(rotWord temp) add (Rcon !! (i/nk))  else (if (nk>6 && i 'mod' nk==4) then temp'=subWord temp  else temp'=temp);w'=af w i (w !! (i-nk)) add temp' --fait la ligne avant i++s
+f2:: Int->Int->Int->[GF28X]->GF28X -> [GF28X]
+f2 i nk nr w temp = g1 (i+1) nk nr w' where temp'= if (mod i nk ==0) then add (subWord (rotWord temp)) (rconList !! (div i nk))else if (nk>6 && ((mod i nk)==4 )) then subWord temp  else temp;w'=af w i (add (w !! (i-nk)) temp') --fait la ligne avant i++s
 
-
--}
 
 
 

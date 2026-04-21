@@ -157,5 +157,6 @@ print "AddRoundKey"
 --addRoundKey (addRoundKey base [tt] )[tt] == base -- car xor réversible
 
 print "conversion 16bits-> objet State"
-print (bit_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] == [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])
-print (bit_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] /= [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q0]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])
+print (octets_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] == [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])
+print (octets_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] /= [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q0]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])
+
