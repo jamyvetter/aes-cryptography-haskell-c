@@ -5,7 +5,7 @@ import Anneau
 import Euclide
 import GF28
 import Polynome
-import SBox
+-- import SBox
 import Z2
 
 main :: IO ()

@@ -66,18 +66,16 @@ inv_gf28 octet
 -- c = {63} = 01100011 ([c7,c6,c5,c4,c3,c2,c1,c0] pour nous)
 
 sub_affine :: GF28 -> GF28
-sub_affine (GF28 (Polynome coeffs)) = GF28 (Polynome [b0', b1', b2', b3', b4', b5', b6', b7'])
+sub_affine (GF28 p) = GF28 (Polynome b')
   where
-    polynome_rempli = coeffs ++ replicate (8 - length coeffs) zero -- replique le bon nombre de 0 a la fin pour avoir 8 coefs
-    [b0, b1, b2, b3, b4, b5, b6, b7] = take 8 polynome_rempli -- prends les 8 coefs du polynome rempli
-    b0' = b0 `add` b4 `add` b5 `add` b6 `add` b7 `add` un
-    b1' = b1 `add` b5 `add` b6 `add` b7 `add` b0 `add` un
-    b2' = b2 `add` b6 `add` b7 `add` b0 `add` b1 `add` zero
-    b3' = b3 `add` b7 `add` b0 `add` b1 `add` b2 `add` zero
-    b4' = b4 `add` b0 `add` b1 `add` b2 `add` b3 `add` zero
-    b5' = b5 `add` b1 `add` b2 `add` b3 `add` b4 `add` un
-    b6' = b6 `add` b2 `add` b3 `add` b4 `add` b5 `add` un
-    b7' = b7 `add` b3 `add` b4 `add` b5 `add` b6 `add` zero
+    -- la matrice est circulante, l'opération est une multiplication polynomiale modulo X^8 + 1 suivie d'une addition de c.
+    a = Polynome [un, un, un, un, un]
+    c = Polynome [un, un, zero, zero, zero, un, un, zero]
+    m8 = Polynome [un, zero, zero, zero, zero, zero, zero, zero, un] -- X^8 + 1
+    (_, r) = de_pol (mul p a) m8
+    (Polynome coeffs_rc) = add r c
+
+    b' = take 8 (coeffs_rc ++ repeat zero)
 
 -- applique inverse puis transfo affine a un octet
 
@@ -174,3 +172,23 @@ rconList =
   ]
   where
     zero_gf28 = intToGf28 0x00
+
+-- pseudo code pour key expansion siméon
+
+-- Transformations inverses :
+
+invShiftRows :: State -> State
+invShiftRows [c0, c1, c2, c3] = [nouvelle_c0, nouvelle_c1, nouvelle_c2, nouvelle_c3]
+  where
+    -- on déballe nos 4 colonnes pour accéder aux 16 octets
+    (GF28X (Polynome [s00, s10, s20, s30])) = c0
+    (GF28X (Polynome [s01, s11, s21, s31])) = c1
+    (GF28X (Polynome [s02, s12, s22, s32])) = c2
+    (GF28X (Polynome [s03, s13, s23, s33])) = c3
+
+    -- on applique la décalage inverse
+    nouvelle_c0 = GF28X (Polynome [s00, s13, s22, s31])
+    nouvelle_c1 = GF28X (Polynome [s01, s10, s23, s32])
+    nouvelle_c2 = GF28X (Polynome [s02, s11, s20, s33])
+    nouvelle_c3 = GF28X (Polynome [s03, s12, s21, s30])
+invShiftRows state = state -- si le state ne fait pas 4 colonnes on fait rien
