@@ -71,4 +71,9 @@
 
 > **Note** : Cette évolution rend la division plus générale et permet d’utiliser la gestion des polynômes avec différents corps, ce qui rend le code plus flexible et réutilisable.
 
+#### Siméon
+- [x] **Implémentation AES** : La fonction `addRoundKey`.
+- [x] **Plan** : Détermination des objectifs du projets, de la démarche future à suivre, étude avancée de la documentation.
+- [x] **Restructuration du projet** : GF28X, State et l'Instanciation ont été repensés.
+
 
