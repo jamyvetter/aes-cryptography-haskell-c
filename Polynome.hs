@@ -13,6 +13,7 @@ instance (Anneau a, Eq a) => Eq (Polynome a) where
 nettoyer :: (Anneau a, Eq a) => [a] -> [a]
 nettoyer l = reverse $ dropWhile (== zero) $ reverse l
 
+{-
 affichage_polynome :: (Anneau a, Eq a) => Polynome a -> [Int]
 affichage_polynome (Polynome liste) = map versInt liste
   where
@@ -22,6 +23,17 @@ affichage_polynome (Polynome liste) = map versInt liste
 
 instance (Anneau a, Eq a) => Show (Polynome a) where
   show p = show (affichage_polynome p)
+-}
+--NB: A supprimer à long terme, il y avait un problème d'affichage sur les GF28X qui mettaient que des zéros
+
+
+instance Show a => Show (Polynome a) where
+  show = show_p
+
+show_p :: Show a => Polynome a -> String
+show_p (Polynome liste) = show liste
+--On utilise le fait que les listes savent s'afficher avec show, donc on a juste à retirer
+--le constructeur pour que la liste s'affiche
 
 addp :: (Anneau a) => Polynome a -> Polynome a -> Polynome a
 addp (Polynome l1) (Polynome l2) = Polynome (addL l1 l2)

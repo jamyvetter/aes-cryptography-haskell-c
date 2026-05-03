@@ -25,7 +25,9 @@ m_GF28X :: Polynome GF28 -- le polynome X^4 +1
 m_GF28X = Polynome [un, zero, zero, zero, un]
 
 mul_gf28x :: GF28X -> GF28X -> GF28X
-mul_gf28x (GF28X a) (GF28X b) = GF28X r where (_, r) = de_pol (mul a b) m_GF28X
+mul_gf28x (GF28X a) (GF28X b) = GF28X (Polynome (take 4 r)) where (_,Polynome r) = de_pol (mul a b) m_GF28X
+--cette correction permet de renvoyer des polynomes de taille 4 sans zéros en trop à la fin, et donc corrige mixcolumns
+
 
 -- Définition de State
 
@@ -90,7 +92,7 @@ subBytesCol (GF28X (Polynome [a0, a1, a2, a3])) = GF28X (Polynome [subByte a0, s
 -- applique SubBtesCOL a chaque colonne du state
 
 subBytes :: State -> State
-subBytes state = map subBytesCol state
+subBytes = map subBytesCol
 
 {-
 VERSION ALTERNATIVE AVEC SBOX.hs
@@ -141,7 +143,7 @@ a_mix = GF28X (Polynome [intToGf28 0x02, intToGf28 0x01, intToGf28 0x01, intToGf
 
 -- multiplie modulo m_GF28X (X^4 +1) chaque colonne par a_mix
 mixColumns :: State -> State
-mixColumns state = map (\col -> a_mix `mul` col) state
+mixColumns = map (\col -> a_mix `mul` col)
 
 -- KEY EXPANSION
 
@@ -152,7 +154,7 @@ rotWord col = col -- Sécurité
 
 -- applique la S-Box à chaque octet du mot
 subWord :: Colonne -> Colonne
-subWord col = subBytesCol col
+subWord = subBytesCol
 
 -- la constante de tour (Rcon)
 -- rconList !! i donne le Rcon du tour i
@@ -192,9 +194,9 @@ state_vers_octets [c0, c1, c2, c3] = [s00,s01,s02,s03,s10,s11,s12,s13,s20,s21,s2
 --Note: dans pseudo code y'a une variable out qui ici est le retour de cette fonction
 --J'ai fait les mêmes types que dans le pseudo code mais peut être juste State sans les traductions est plus simple
 --cipher dépend de nr et j'ai fixé Nb=4
-
+--cipher=f(Nr,bit_in,word) -> renvoie le texte chiffré, un tableau de 16 octets ([GF28])
 cipher:: Int->[GF28]-> [GF28X] -> [GF28]
-cipher nr b_in w= final where state0= octets_vers_state b_in; state1=addRoundKey state0 (intervale_4 0 w); state2= for_round 1 nr state1 w; state3=addRoundKey ((shiftRows . subBytes) state2) (intervale_4 (nr*4) w) ;final=state_vers_octets state3
+cipher nr b_in w= final where state0= octets_vers_state b_in; state1=addRoundKey state0 (intervale_4 0 w); state2= for_round 1 nr state1 w;state3=addRoundKey ((shiftRows . subBytes) state2) (intervale_4 nr w) ;final=state_vers_octets state3
 
 for_round ::Int->Int-> State -> State->State
 for_round round nr state w = if nr==round then state else for_round (round+1) nr state' w where state'= addRoundKey (mixColumns ( shiftRows ( subBytes state))) (intervale_4 round w)
@@ -249,7 +251,10 @@ g1 i nk nr w= if i<4*(nr+1) then f2 i nk nr w temp else w where temp= w !! (i-1)
 
 --f2::  --modifie w apres le while
 f2:: Int->Int->Int->[GF28X]->GF28X -> [GF28X]
-f2 i nk nr w temp = g1 (i+1) nk nr w' where temp'= if (mod i nk ==0) then add (subWord (rotWord temp)) (rconList !! (div i nk))else if (nk>6 && ((mod i nk)==4 )) then subWord temp  else temp;w'=af w i (add (w !! (i-nk)) temp') --fait la ligne avant i++s
+f2 i nk nr w temp = g1 (i+1) nk nr w' where temp'
+                                              | mod i nk ==0 = add (subWord (rotWord temp)) (rconList !! (div i nk))
+                                              | nk>6 && ((mod i nk)==4 ) = subWord temp
+                                              | otherwise = temp;w'=af w i (add (w !! (i-nk)) temp') --fait la ligne avant i++s
 
 
 
@@ -300,7 +305,7 @@ invSubBytesCol (GF28X (Polynome [a0, a1, a2, a3])) = GF28X (Polynome [invSubByte
 
 -- applique invSubBytesCol a chaque colonne du state
 invSubBytes :: State -> State
-invSubBytes state = map invSubBytesCol state
+invSubBytes = map invSubBytesCol
 
 -- INVMIXCOLUMNS
 
@@ -311,4 +316,25 @@ a_inv_mix = GF28X (Polynome [intToGf28 0x0e, intToGf28 0x09, intToGf28 0x0d, int
 
 -- multiplie modulo m_GF28X (X^4 +1) chaque colonne par a_inv_mix
 invMixColumns :: State -> State
-invMixColumns state = map (\col -> a_inv_mix `mul` col) state
+invMixColumns = map (\col -> a_inv_mix `mul` col)
+
+
+---Affichage des résultats ----
+
+
+--Traduit un GF28 en un élément hexa lisible
+liste_hexa = "0123456789abcdef"
+gf28ToHex :: GF28 -> String
+gf28ToHex gf = [liste_hexa !! (val `div` 16),liste_hexa !! (val `mod` 16)] where val = gf28ToInt gf
+
+--Affichage des clefs sous forme de liste de nombre hexa
+afficher_key :: [GF28] -> String 
+afficher_key [] = ""
+afficher_key [octet] = gf28ToHex octet
+afficher_key (octet:reste) = gf28ToHex octet ++ " " ++ afficher_key reste
+
+--Affichage de State colonne par colonne
+afficher_state :: [GF28X] -> String
+afficher_state [] = ""
+afficher_state [GF28X (Polynome col)] = afficher_key col
+afficher_state (GF28X (Polynome col) : reste) =  afficher_key col ++ " | " ++ afficher_state reste

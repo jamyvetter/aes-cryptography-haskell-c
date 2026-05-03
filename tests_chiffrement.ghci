@@ -1,0 +1,49 @@
+-- Variables d'entrées pour les chiffrement (input et cipher key ), selon les annexes
+
+key_A = map intToGf28 [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+input_B = map intToGf28 [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34]
+
+key_C = map intToGf28 [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
+input_C = map intToGf28 [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
+
+--Application de Cipher, Key Expansion:
+
+----------- Annexe A.1 : 128-bit Cipher Key -----------
+output_key_A = keyExpansion key_A 4 10
+
+----------- Annexe B : Cipher -----------
+
+w_annexe_B = output_key_A
+
+-- Vérification du résultat au round 0:
+-- Attendu : 19 a0 9a e9 3d f4 c6 f8 e3 e2 8d 48 be 2b 2a 08 (lu par colonnes)
+state_B_init = addRoundKey (octets_vers_state input_B) (intervale_4 0 w_annexe_B)
+
+-- 2. Vérification du résultat après SubBytes au round 1
+-- Attendu : d4 e0 b8 1e 27 bf b4 41 11 98 5d 52 ae f1 e5 30
+state_B_sub = subBytes state_B_init
+
+-- Vérification du résultat après ShiftRows au round 1
+-- Attendu : d4 e0 b8 1e bf b4 41 27 5d 52 11 98 30 ae f1 e5
+state_B_shift = shiftRows state_B_sub
+
+-- Vérification du résultat après MixColumns au round 1
+-- Attendu : 04 e0 48 28 66 cb f8 06 81 19 d3 26 e5 9a 7a 4c
+state_B_mix = mixColumns state_B_shift
+
+-- Vérification du résultat après cipher appliqué aux entrées de l'Annexe B.
+-- Attendu : 39 02 dc 19 25 dc 11 6a 84 09 85 0b 1d fb 97 32 -- NB: je sais plus comment marche l'affichage mais ici c'est l'écriture ligne par ligne de la matrice
+output_state_B = cipher 10 input_B w_annexe_B 
+
+
+
+
+----------- Annexe C.1 : Chiffrement complet (AES-128) -----------
+
+-- Attendu : 69 c4 e0 d8 6a 7b 04 30 d8 cd b7 80 70 b4 c5 5a
+output_key_C = cipher 10 input_C (keyExpansion key_C 4 10)
+--NB: ici typiquement c'est l'autre affichage car c'est une clef, mais le resultat est bon
+
+
+
+--Validation des résultats: à tester avec afficher_key; afficher_state

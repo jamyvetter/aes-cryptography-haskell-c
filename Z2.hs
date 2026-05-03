@@ -8,7 +8,14 @@ instance Anneau Integer where
   add = (+)
   mul = (*)
 
-data Z2 = Z2 Integer deriving (Show, Eq)
+data Z2 = Z2 Integer deriving (Eq)
+
+instance Show Z2 where 
+  show= show_z2
+
+show_z2:: Z2->String
+show_z2 (Z2 x) = show x
+--de même ici, on apprend à affiche un Z2 sans écrire la notation Z2 x, ce qui simplifie pour l'affichage des polynomes
 
 instance Anneau Z2 where
   zero = Z2 0
