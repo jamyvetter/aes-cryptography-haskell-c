@@ -83,6 +83,7 @@
 - [x] **Plan** : Détermination des objectifs du projets, de la démarche future à suivre, étude avancée de la documentation.
 - [x] **Restructuration du projet** : GF28X, State et l'Instanciation ont été repensés.
 
+</details>
 
 ---
 
