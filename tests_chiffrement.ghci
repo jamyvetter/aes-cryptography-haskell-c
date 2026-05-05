@@ -45,5 +45,50 @@ output_key_C = cipher 10 input_C (keyExpansion key_C 4 10)
 --NB: ici typiquement c'est l'autre affichage car c'est une clef, mais le resultat est bon
 
 
+-----------Tests du Chiffrement Complet-----------
 
---Validation des résultats: à tester avec afficher_key; afficher_state
+-- Traduction des attentes en véritables variables de test (Listes de GF28)
+expected_cipher_B = map intToGf28 [0x39, 0x25, 0x84, 0x1d, 0x02, 0xdc, 0x09, 0xfb, 0xdc, 0x11, 0x85, 0x97, 0x19, 0x6a, 0x0b, 0x32]
+expected_cipher_C = map intToGf28 [0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a]
+
+-- Tests de validation
+test_cipher_B = output_state_B == expected_cipher_B
+test_cipher_C = output_key_C == expected_cipher_C
+
+
+----------- Tests du Déchiffrement (Inverse Cipher) -----------
+
+
+-- 1. Test InvShiftRows : doit annuler l'effet de ShiftRows du round 1
+-- État attendu : d4 e0 b8 1e 27 bf b4 41 11 98 5d 52 ae f1 e5 30 (soit state_B_sub)
+test_inv_shift = invShiftRows state_B_shift == state_B_sub
+
+-- 2. Test InvSubBytes : doit annuler l'effet de SubBytes du round 1
+-- État attendu : 19 a0 9a e9 3d f4 c6 f8 e3 e2 8d 48 be 2b 2a 08 (soit state_B_init)
+test_inv_sub = invSubBytes state_B_sub == state_B_init
+
+-- 3. Test InvMixColumns : doit annuler l'effet de MixColumns du round 1
+-- État attendu : d4 e0 b8 1e bf b4 41 27 5d 52 11 98 30 ae f1 e5 (soit state_B_shift)
+test_inv_mix = invMixColumns state_B_mix == state_B_shift
+
+-- 4. Test InvAddRoundKey : vérification de l'involution (A XOR B) XOR B = A
+-- On ré-applique la sous-clé du round 0 sur state_B_init pour retrouver l'input
+-- État attendu : input_B
+test_inv_addkey = state_vers_octets (invAddRoundKey state_B_init (intervale_4 0 w_annexe_B)) == input_B
+
+----------- Synthèse Visuelle des Tests -----------
+
+-- on exécute la fonction suivante dans GHCI pour avoir un résultat immédiat
+:{
+runTests :: IO ()
+runTests = do
+    putStrLn "--- Validation du Chiffrement Complet ---"
+    putStrLn $ "Cipher AES-128 (Annexe B) : " ++ if test_cipher_B then "OK" else "ECHEC"
+    putStrLn $ "Cipher AES-128 (Annexe C) : " ++ if test_cipher_C then "OK" else "ECHEC"
+    
+    putStrLn "\n--- Validation des transformations Inverses ---"
+    putStrLn $ "InvShiftRows   : " ++ if test_inv_shift then "OK" else "ECHEC"
+    putStrLn $ "InvSubBytes    : " ++ if test_inv_sub then "OK" else "ECHEC"
+    putStrLn $ "InvMixColumns  : " ++ if test_inv_mix then "OK" else "ECHEC"
+    putStrLn $ "InvAddRoundKey : " ++ if test_inv_addkey then "OK" else "ECHEC"
+:}

@@ -46,7 +46,10 @@
 
 ---
 
-## Séance 3 — *À compléter*
+<details>
+<summary><b>Séance 3 - (21/04/26)</b></summary>
+
+## Séance 3 —
 
 ### Travail en autonomie (Hors séance)
 - [x] **Jamyson** : Remodelage de la structure du projet (séparation du code en 7 fichiers distincts : `Anneau.hs`, `Z2.hs`, `Polynome.hs`, `GF28.hs`, `Euclide.hs`, `AES.hs`, `Main.hs`).
@@ -55,9 +58,8 @@
 #### Siméon & Jamyson
 
 - Travail commun
-  - [ ] Comprendre les 4 fonctions clés de l’algorithme AES, identifier les types demandés, retour et parametres attendus  
-  - [ ] Implémenter au moins une de ces fonctions  
-
+  - [x] Comprendre les 4 fonctions clés de l’algorithme AES, identifier les types demandés, retour et parametres attendus  
+  - [x] Implémenter au moins une de ces fonctions  
 
 
 ### B. Tâches effectivement réalisées
@@ -82,3 +84,40 @@
 - [x] **Restructuration du projet** : GF28X, State et l'Instanciation ont été repensés.
 
 
+---
+
+<details>
+<summary><b>Séance 4 - (06/05/26)</b></summary> *A compléter*
+
+### Travail en autonomie (Hors séance)
+
+#### Siméon
+- [x] **Refactorisation et nettoyage du code (`AES.hs`)** : Simplification de plusieurs fonctions (`subBytes`, `mixColumns`, `subWord`, `invSubBytes`, `invMixColumns`) en supprimant les variables intermédiaires superflues.
+- [x] **Correction algébrique** : Ajustement de la multiplication polynomiale `mul_gf28x` (`take 4`) afin de garantir la bonne taille des polynômes retournés, ce qui corrige le comportement de `mixColumns`.
+- [x] **Amélioration de l'affichage et du débogage** :
+    - Refonte des instances `Show` dans `Z2.hs` et `Polynomes.hs` pour obtenir un affichage plus lisible (listes standards plutôt que `Z2 x`).
+    - Ajout d’un module d’affichage hexadécimal dans `AES.hs` (`gf28ToHex`, `afficher_key`, `afficher_state`) pour faciliter la lecture des états et des clés.
+- [x] **Initialisation des tests** : Création de la structure de base du script de validation globale `tests_chiffrement.ghci`.
+
+#### Jamyson
+- [x] **Complétion des tests et validation NIST** : Reprise et complétion du script `tests_chiffrement.ghci`.
+    - Ajout de tests de validation automatisés pour valider le chiffrement complet (Forward Cipher), en s’appuyant sur les annexes B et C.1 du standard FIPS 197.
+    - Ajout de tests d’involution pour vérifier la validité de chaque transformation inverse (déchiffrement).
+- [x] **Débogage matriciel** : Identification et correction d’un problème de transposition dans `state_vers_octets`. La matrice est maintenant reconstruite correctement en lecture colonne par colonne (au lieu de ligne par ligne), ce qui a permis de valider définitivement les tests AES.
+
+
+### A. Tâches à réaliser avant la séance
+#### Siméon & Jamyson
+
+- **Travail commun : Orchestration du Déchiffrement**
+  - [x] Analyser la structure de l'algorithme *Equivalent Inverse Cipher* dans le standard NIST (ordre des transformations et des clés).
+  - [ ] Implémenter la fonction principale `invCipher` dans `AES.hs` en s'appuyant sur les briques unitaires déjà validées.
+  - [ ] Développer la boucle de déchiffrement inverse (`for_round_inv`) pour remonter les tours de 10 à 0.
+  - [ ] Finaliser le script `tests_chiffrement.ghci` en ajoutant le test de "Round Trip" (vérifier que `invCipher(cipher(data)) == data`).
+
+
+### B. Tâches effectivement réalisées
+(*À remplir à la fin de notre séance*)
+
+
+</details>
