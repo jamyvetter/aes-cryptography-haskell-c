@@ -88,7 +88,16 @@
 ---
 
 <details>
-<summary><b>Séance 4 - (06/05/26)</b></summary> *A compléter*
+<summary><b>Séance 4 - (06/05/26) *A compléter*</b></summary> 
+
+### A. Tâches à réaliser pendant la séance
+#### Siméon & Jamyson
+
+- **Travail commun : Orchestration du Déchiffrement**
+  - [x] Analyser la structure de l'algorithme *Equivalent Inverse Cipher* dans le standard NIST (ordre des transformations et des clés).
+  - [x] Réaliser les tests du chiffrement et du déchiffrement.
+  - [x] Préparer les affichages visuels pour les 4 fonctions AES, les clés et les états.
+
 
 ### Travail en autonomie (Hors séance)
 
@@ -106,15 +115,6 @@
     - Ajout de tests d’involution pour vérifier la validité de chaque transformation inverse (déchiffrement).
 - [x] **Débogage matriciel** : Identification et correction d’un problème de transposition dans `state_vers_octets`. La matrice est maintenant reconstruite correctement en lecture colonne par colonne (au lieu de ligne par ligne), ce qui a permis de valider définitivement les tests AES.
 
-
-### A. Tâches à réaliser avant la séance
-#### Siméon & Jamyson
-
-- **Travail commun : Orchestration du Déchiffrement**
-  - [x] Analyser la structure de l'algorithme *Equivalent Inverse Cipher* dans le standard NIST (ordre des transformations et des clés).
-  - [ ] Implémenter la fonction principale `invCipher` dans `AES.hs` en s'appuyant sur les briques unitaires déjà validées.
-  - [ ] Développer la boucle de déchiffrement inverse (`for_round_inv`) pour remonter les tours de 10 à 0.
-  - [ ] Finaliser le script `tests_chiffrement.ghci` en ajoutant le test de "Round Trip" (vérifier que `invCipher(cipher(data)) == data`).
 
 
 ### B. Tâches effectivement réalisées

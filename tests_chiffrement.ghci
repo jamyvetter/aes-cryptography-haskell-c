@@ -32,7 +32,7 @@ state_B_shift = shiftRows state_B_sub
 state_B_mix = mixColumns state_B_shift
 
 -- Vérification du résultat après cipher appliqué aux entrées de l'Annexe B.
--- Attendu : 39 02 dc 19 25 dc 11 6a 84 09 85 0b 1d fb 97 32 -- NB: je sais plus comment marche l'affichage mais ici c'est l'écriture ligne par ligne de la matrice
+-- Attendu : 39 02 dc 19 25 dc 11 6a 84 09 85 0b 1d fb 97 32
 output_state_B = cipher 10 input_B w_annexe_B 
 
 
@@ -42,7 +42,6 @@ output_state_B = cipher 10 input_B w_annexe_B
 
 -- Attendu : 69 c4 e0 d8 6a 7b 04 30 d8 cd b7 80 70 b4 c5 5a
 output_key_C = cipher 10 input_C (keyExpansion key_C 4 10)
---NB: ici typiquement c'est l'autre affichage car c'est une clef, mais le resultat est bon
 
 
 -----------Tests du Chiffrement Complet-----------
