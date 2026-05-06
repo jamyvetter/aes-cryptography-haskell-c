@@ -6,7 +6,7 @@ class Anneau a where
   zero :: a
   un :: a
   add :: a -> a -> a
-  sub :: a -> a -> a
+  sub :: a -> a -> a -- sub est l'opposé de add, comme (A,+) est un groupe commutatif cet inverse existe. On le rajoute pour généraliser
   mul :: a -> a -> a
 
 class (Anneau a) => Corps a where
