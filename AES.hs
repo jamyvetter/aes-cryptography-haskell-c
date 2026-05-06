@@ -55,6 +55,11 @@ toZ2List _ 0 = []
 toZ2List x count = Z2 (toInteger (x `mod` 2)) : toZ2List (x `div` 2) (count - 1)
 
 -- Fonction Entier vers GF28
+
+--Fonction auxiliaire pour la conversion entier vers GF28
+toZ2List _ 0 = []
+toZ2List x count = Z2 (toInteger (x `mod` 2)) : toZ2List (x `div` 2) (count - 1)
+
 intToGf28 :: Int -> GF28
 intToGf28 n = GF28 (Polynome (toZ2List n 8))
 
@@ -335,3 +340,26 @@ afficher_state :: [GF28X] -> String
 afficher_state [] = ""
 afficher_state [GF28X (Polynome col)] = afficher_key col
 afficher_state (GF28X (Polynome col) : reste) = afficher_key col ++ " | " ++ afficher_state reste
+
+--Utilise la convention entrée liste d'octets et sortie liste d'octets.
+invCipher:: [GF28] -> [GF28X] -> Int->Int -> [GF28]
+invCipher b_in w nb nr = state_vers_octets (invCipher_state (octets_vers_state b_in) w nb nr)
+
+--Cette version agit sur les types State
+--invCipher() (state ,w ,nb,nr) -> final_state
+invCipher_state :: State -> [GF28X] -> Int->Int -> State
+invCipher_state state w nb nr = hors_boucle_inv_cipher (for_round_inv init w nb (nr-1)) w nb  where init= addRoundKey state (intervale_4 nr w)
+
+for_round_inv:: State ->[GF28X]-> Int->Int -> State
+for_round_inv state _ _ 0 = state
+for_round_inv state w nb nr = for_round_inv (fff state w nr nb) w nb (nr-1)   
+
+--les modifications de l'etat dans la boucle inverse cipher, 
+-- Entrées: (state, w,round,Nb) => Sortie ::State
+fff:: State ->[GF28X]->Int->Int-> State 
+fff state w round nb= invMixColumns (addRoundKey ((invSubBytes . invShiftRows) state ) (intervale_4 round w))
+
+--Entrées: (state,w,nb) Sortie: state 
+hors_boucle_inv_cipher:: State -> [GF28X]->Int-> State 
+hors_boucle_inv_cipher state w nb = addRoundKey (invSubBytes (invShiftRows state)) (intervale_4 0 w)
+
