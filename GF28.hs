@@ -13,6 +13,7 @@ instance Anneau GF28 where
   zero = GF28 zero
   un = GF28 un
   add = add_gf28
+  sub = add_gf28
   mul = mul_gf28
 
 m :: Polynome Z2

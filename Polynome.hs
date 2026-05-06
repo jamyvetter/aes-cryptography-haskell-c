@@ -24,16 +24,16 @@ affichage_polynome (Polynome liste) = map versInt liste
 instance (Anneau a, Eq a) => Show (Polynome a) where
   show p = show (affichage_polynome p)
 -}
---NB: A supprimer à long terme, il y avait un problème d'affichage sur les GF28X qui mettaient que des zéros
+-- NB: A supprimer à long terme, il y avait un problème d'affichage sur les GF28X qui mettaient que des zéros
 
-
-instance Show a => Show (Polynome a) where
+instance (Show a) => Show (Polynome a) where
   show = show_p
 
-show_p :: Show a => Polynome a -> String
+show_p :: (Show a) => Polynome a -> String
 show_p (Polynome liste) = show liste
---On utilise le fait que les listes savent s'afficher avec show, donc on a juste à retirer
---le constructeur pour que la liste s'affiche
+
+-- On utilise le fait que les listes savent s'afficher avec show, donc on a juste à retirer
+-- le constructeur pour que la liste s'affiche
 
 addp :: (Anneau a) => Polynome a -> Polynome a -> Polynome a
 addp (Polynome l1) (Polynome l2) = Polynome (addL l1 l2)
@@ -42,6 +42,14 @@ addL :: (Anneau a) => [a] -> [a] -> [a]
 addL [] ys = ys
 addL xs [] = xs
 addL (x : xs) (y : ys) = (add x y) : addL xs ys
+
+subp :: (Anneau a) => Polynome a -> Polynome a -> Polynome a
+subp (Polynome l1) (Polynome l2) = Polynome (subL l1 l2)
+
+subL :: (Anneau a) => [a] -> [a] -> [a]
+subL [] ys = map (sub zero) ys
+subL xs [] = xs
+subL (x : xs) (y : ys) = (sub x y) : subL xs ys
 
 mulL :: (Anneau a) => [a] -> [a] -> [a]
 mulL [] _ = []
@@ -56,6 +64,7 @@ instance (Anneau a) => Anneau (Polynome a) where
   zero = Polynome [zero]
   un = Polynome [un]
   add = addp
+  sub = subp
   mul = mulp
 
 -- Calcule le degré d'un polynome
@@ -69,7 +78,7 @@ completeListe l 0 = l
 completeListe l n = completeListe ([zero] ++ l) (n - 1)
 
 -- Effectue la division euclidienne de polynomes
-de_pol :: (Anneau a, Eq a) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
+de_pol :: (Corps a, Eq a) => Polynome a -> Polynome a -> (Polynome a, Polynome a)
 de_pol a b
   | degre b == -1 = error "Division par un polynôme nul impossible"
   | degre a == -1 = (zero, zero)
@@ -80,18 +89,21 @@ de_pol a b
     dB = degre b
     diff = dA - dB
 
-    -- on récupère le coefficient de plus haut degré de A
+    -- on récupère le coefficient de plus haut degré de A et B
     (Polynome listA) = a
+    (Polynome listB) = b
     coeffA = listA !! dA
+    coeffB = listB !! dB
 
-    -- le quotient prend ce coefficient
-    qActuel = Polynome (replicate diff zero ++ [coeffA])
+    -- le quotient prend ce coefficient pondéré par l'inverse de celui de B
+    coeffQuotient = mul coeffA (inv coeffB)
+    qActuel = Polynome (replicate diff zero ++ [coeffQuotient])
 
     -- on utilise la multiplication de l'anneau pour décaler ET mettre à l'échelle B
     bDecale = mul b qActuel
 
-    -- l'addition (XOR) de a et bDecale annule le terme de plus haut degré
-    aReduit = add a bDecale
+    -- la soustraction de a et bDecale annule le terme de plus haut degré
+    aReduit = sub a bDecale
 
     -- appel récursif sur le reste
     (qSuite, rFinal) = de_pol aReduit b

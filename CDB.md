@@ -116,9 +116,25 @@
 - [x] **Débogage matriciel** : Identification et correction d’un problème de transposition dans `state_vers_octets`. La matrice est maintenant reconstruite correctement en lecture colonne par colonne (au lieu de ligne par ligne), ce qui a permis de valider définitivement les tests AES.
 
 
-
 ### B. Tâches effectivement réalisées
-(*À remplir à la fin de notre séance*)
+#### Jamyson
+- [x] **Généralisation de la structure algébrique (soustraction)** :
+    - Mise à jour de la classe `Anneau` dans `Anneau.hs` pour ajouter la méthode `sub`.
+    - Implémentation de `sub = add` dans `Z2.hs`, `GF28.hs` et `AES.hs` (`GF28X`).
+    - Intégration de `sub` dans l’instance `Anneau (Polynome a)` via les fonctions `subp` et `subL` dans `Polynome.hs`.
 
+- [x] **Généralisation de la division et de l’algorithme d’Euclide (corps quelconque)** :
+    - Modification de la signature de `de_pol` dans `Polynome.hs` pour utiliser la contrainte `Corps a` (au lieu de `Anneau a`).
+    - Adaptation de `de_pol` pour utiliser `inv` et `sub` plutôt que `add`.
+    - Mise à jour des fonctions `aux`, `euclide` et `inv_p` dans `Euclide.hs` avec la contrainte `Corps a`.
+    - Remplacement de `add` par `sub` dans le calcul des coefficients de Bézout (`u_nv`, `v_nv`) dans `aux`.
 
+- [x] **Normalisation et correction de bugs** :
+    - Ajout de la normalisation du PGCD unitaire dans `inv_p` (`Euclide.hs`).
+    - Correction d’un bug ("Pas d’inverse pour zéro" en Z2) causé par des zéros non supprimés à la fin des polynômes lors de la récupération du coefficient dominant.
+
+- [x] **Tests et validation de la généralisation** :
+    - Création d’un corps abstrait `Z3` et mise en place de scripts de test (`tests_corps_quelconque.ghci`, `tests_run.ghci`).
+    - Exécution de cas de test variés (polynômes de degrés élevés, dividende < diviseur, changement de corps entre $GF(3)$ et $GF(2)$).
+    - Validation complète avec les deux fichiers de tests (`tests_anneaux.ghci`, `tests_chiffrement.ghci`).
 </details>

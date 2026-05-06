@@ -6,19 +6,26 @@ instance Anneau Integer where
   zero = 0
   un = 1
   add = (+)
+  sub = (-)
   mul = (*)
 
 data Z2 = Z2 Integer deriving (Eq)
 
-instance Show Z2 where 
-  show= show_z2
+instance Show Z2 where
+  show = show_z2
 
-show_z2:: Z2->String
+show_z2 :: Z2 -> String
 show_z2 (Z2 x) = show x
---de même ici, on apprend à affiche un Z2 sans écrire la notation Z2 x, ce qui simplifie pour l'affichage des polynomes
+
+-- de même ici, on apprend à affiche un Z2 sans écrire la notation Z2 x, ce qui simplifie pour l'affichage des polynomes
 
 instance Anneau Z2 where
   zero = Z2 0
   un = Z2 1
   add (Z2 a) (Z2 b) = Z2 $ mod (a + b) 2
+  sub = add
   mul (Z2 a) (Z2 b) = Z2 $ a * b
+
+instance Corps Z2 where
+  inv (Z2 1) = Z2 1
+  inv _ = error "Pas d'inverse pour zero"

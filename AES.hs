@@ -16,6 +16,7 @@ instance Anneau GF28X where
   zero = GF28X zero
   un = GF28X un
   add = add_gf28x
+  sub = add_gf28x
   mul = mul_gf28x
 
 add_gf28x :: GF28X -> GF28X -> GF28X
@@ -49,12 +50,13 @@ addRoundKey (s : ss) (k : ks) = add_gf28x s k : addRoundKey ss ks -- techniqueme
 gf28ToInt :: GF28 -> Int
 gf28ToInt (GF28 (Polynome coeffs)) = sum [fromIntegral val * (2 ^ i) | (Z2 val, i) <- zip coeffs [0 ..]]
 
+toZ2List :: Int -> Int -> [Z2]
+toZ2List _ 0 = []
+toZ2List x count = Z2 (toInteger (x `mod` 2)) : toZ2List (x `div` 2) (count - 1)
+
 -- Fonction Entier vers GF28
 intToGf28 :: Int -> GF28
 intToGf28 n = GF28 (Polynome (toZ2List n 8))
-  where
-    toZ2List _ 0 = []
-    toZ2List x count = Z2 (toInteger (x `mod` 2)) : toZ2List (x `div` 2) (count - 1)
 
 -- SUBBYTES
 
