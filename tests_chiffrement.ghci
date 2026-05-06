@@ -39,9 +39,10 @@ output_state_B = cipher 10 input_B w_annexe_B
 
 
 ----------- Annexe C.1 : Chiffrement complet (AES-128) -----------
-
+w_annexe_C =keyExpansion key_C 4 10
 -- Attendu : 69 c4 e0 d8 6a 7b 04 30 d8 cd b7 80 70 b4 c5 5a
-output_key_C = cipher 10 input_C (keyExpansion key_C 4 10)
+output_key_C = cipher 10 input_C w_annexe_C
+
 
 
 -----------Tests du Chiffrement Complet-----------
@@ -74,6 +75,24 @@ test_inv_mix = invMixColumns state_B_mix == state_B_shift
 -- On ré-applique la sous-clé du round 0 sur state_B_init pour retrouver l'input
 -- État attendu : input_B
 test_inv_addkey = state_vers_octets (invAddRoundKey state_B_init (intervale_4 0 w_annexe_B)) == input_B
+
+nb=4
+nr=10
+dechiffrement_state_B = invCipher output_state_B w_annexe_B nb nr
+dechiffrement_state_B==input_B
+
+dechiffrement_key_C= invCipher output_key_C (keyExpansion key_C 4 10) nb nr
+input_C == dechiffrement_key_C
+
+--afficher_key input_B
+--afficher_key dechiffrement_state_B
+--afficher_key input_C
+--afficher_key dechiffrement_key_C
+
+--tests plus petits étapes par étape:
+b_in= output_key_C
+test_1= afficher_key (state_vers_octets (addRoundKey (octets_vers_state b_in) (intervale_4 nr w_annexe_C))) -- intialisation validee
+-- A ce stade j'ai vu l'erreur dans la dernière étape du déchiffrement, qui fonctionne désormais
 
 ----------- Synthèse Visuelle des Tests -----------
 
