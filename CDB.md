@@ -88,7 +88,7 @@
 ---
 
 <details>
-<summary><b>Séance 4 - (06/05/26) *A compléter*</b></summary> 
+<summary><b>Séance 4 - (06/05/26)</b></summary> 
 
 ### A. Tâches à réaliser pendant la séance
 #### Siméon & Jamyson
@@ -117,24 +117,23 @@
 
 
 ### B. Tâches effectivement réalisées
+
+#### Siméon
+- [x] **Déchiffrement (Inverse Cipher)** :
+    - Implémentation complète de `invCipher` ainsi que de la boucle de déchiffrement associée dans `AES.hs`, ce qui complète désormais toute la chaîne de déchiffrement AES.
+
+- [x] **Validation de la généralisation (clés 192/256 bits)** :
+    - Tests du chiffrement et du déchiffrement pour les différentes tailles de clés (`Nk` = 4, 6, 8) et nombres de rounds (`Nr` = 10, 12, 14).
+    - Vérification du bon comportement de l’algorithme lors du changement de paramètres de clé.
+
+- [x] **Tests et validation NIST** :
+    - Exécution avec succès des tests des annexes du standard AES (Key Expansion et Cipher complet).
+    - Validation des tests (`invCipher` après `cipher`) sur l’ensemble des cas testés.
+
 #### Jamyson
-- [x] **Généralisation de la structure algébrique (soustraction)** :
-    - Mise à jour de la classe `Anneau` dans `Anneau.hs` pour ajouter la méthode `sub`.
-    - Implémentation de `sub = add` dans `Z2.hs`, `GF28.hs` et `AES.hs` (`GF28X`).
-    - Intégration de `sub` dans l’instance `Anneau (Polynome a)` via les fonctions `subp` et `subL` dans `Polynome.hs`.
-
-- [x] **Généralisation de la division et de l’algorithme d’Euclide (corps quelconque)** :
-    - Modification de la signature de `de_pol` dans `Polynome.hs` pour utiliser la contrainte `Corps a` (au lieu de `Anneau a`).
-    - Adaptation de `de_pol` pour utiliser `inv` et `sub` plutôt que `add`.
-    - Mise à jour des fonctions `aux`, `euclide` et `inv_p` dans `Euclide.hs` avec la contrainte `Corps a`.
-    - Remplacement de `add` par `sub` dans le calcul des coefficients de Bézout (`u_nv`, `v_nv`) dans `aux`.
-
-- [x] **Normalisation et correction de bugs** :
-    - Ajout de la normalisation du PGCD unitaire dans `inv_p` (`Euclide.hs`).
-    - Correction d’un bug ("Pas d’inverse pour zéro" en Z2) causé par des zéros non supprimés à la fin des polynômes lors de la récupération du coefficient dominant.
-
-- [x] **Tests et validation de la généralisation** :
-    - Création d’un corps abstrait `Z3` et mise en place de scripts de test (`tests_corps_quelconque.ghci`, `tests_run.ghci`).
-    - Exécution de cas de test variés (polynômes de degrés élevés, dividende < diviseur, changement de corps entre $GF(3)$ et $GF(2)$).
-    - Validation complète avec les deux fichiers de tests (`tests_anneaux.ghci`, `tests_chiffrement.ghci`).
+- [x] **Généralisation des fonctions sur les polynômes (division et algorithme d'Euclide)** :
+    - **Généralisation de la structure algébrique** : Mise à jour de la classe `Anneau` pour y ajouter l'opération de soustraction (`sub`), et implémentation de celle-ci pour `Z2`, `GF28`, `GF28X` et les polynômes.
+    - **Adaptation des algorithmes à un corps quelconque** : Modification des fonctions `de_pol`, `euclide` et `inv_p` pour imposer la contrainte `Corps` au lieu de `Anneau`, et utilisation de la vraie soustraction (`sub`) dans le calcul des coefficients de Bézout.
+    - **Normalisation et corrections** : Ajout d’une normalisation du PGCD dans `inv_p` afin d’obtenir un polynôme unitaire (coefficient dominant égal à 1) et résolution des problèmes d'inversion liés aux zéros non supprimés en fin de polynômes.
+    - **Tests et validation globale** : Création du corps abstrait `Z3` et validation de la généralisation sur plusieurs cas avancés (changement de corps $GF(2)$/$GF(3)$, dividende < diviseur) via `tests_corps_quelconque.ghci`. Vérification du bon fonctionnement de l’AES après les modifications grâce à l’exécution complète de `tests_anneaux.ghci` et `tests_chiffrement.ghci`.
 </details>

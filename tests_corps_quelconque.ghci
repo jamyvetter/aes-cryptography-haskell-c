@@ -56,7 +56,7 @@ runTests = do
     putStrLn $ "Quotient Q attendu : [0,2]   -> " ++ if q1 == Polynome [zero, Z3 2] then "OK" else "ECHEC (" ++ show q1 ++ ")"
     putStrLn $ "Reste R attendu    : [1]     -> " ++ if r1 == un then "OK" else "ECHEC (" ++ show r1 ++ ")"
     
-    putStrLn "\n--- 2.1 Algorithme d'Euclide étendu ---"
+    putStrLn "\n--- 1.2 Algorithme d'Euclide étendu ---"
     putStrLn $ "PGCD calculé : " ++ show pgcd1
     putStrLn $ "Coef U       : " ++ show u1
     putStrLn $ "Coef V       : " ++ show v1

@@ -18,8 +18,6 @@ inv_p p m = u_norm
     c = if null l_net then un else last l_net -- le scalaire est le dernier element si non vide
     u_norm = mul u (Polynome [inv c])
 
--- N.B: On pourrait changer le type et mettre ::GF28->Gf28 car les polynomes qu'on veut inverser sont ceux du corps GF28 (sauf zero)
-
 -- Prend deux polynômes A,B et renvoie les polynomes d'Euclide etendu: (pgcd, U, V)
 euclide :: (Corps a, Eq a) => (Polynome a, Polynome a) -> (Polynome a, Polynome a, Polynome a)
 euclide (a, b) = (r, u, v)
