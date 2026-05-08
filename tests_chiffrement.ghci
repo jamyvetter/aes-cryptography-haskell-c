@@ -1,12 +1,12 @@
 :load AES
 -- Variables d'entrées pour les chiffrement (input et cipher key ), selon les annexes
 
-key_A = map intToGf28 [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+key_A1 = map intToGf28 [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
 key_A2 = map intToGf28 [0x8e, 0x73 ,0xb0 ,0xf7 ,0xda ,0x0e ,0x64 ,0x52 ,0xc8 ,0x10 ,0xf3 ,0x2b,0x80 ,0x90 ,0x79 ,0xe5 ,0x62 ,0xf8 ,0xea ,0xd2 ,0x52 ,0x2c ,0x6b ,0x7b]
 key_A3= map intToGf28 [0x60 ,0x3d ,0xeb ,0x10 ,0x15 ,0xca ,0x71 ,0xbe ,0x2b ,0x73 ,0xae ,0xf0 ,0x85 ,0x7d ,0x77 ,0x81,0x1f ,0x35 ,0x2c ,0x07 ,0x3b ,0x61 ,0x08 ,0xd7 ,0x2d ,0x98 ,0x10 ,0xa3 ,0x09 ,0x14 ,0xdf ,0xf4]
 
 input_B = map intToGf28 [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34]
-key_C = map intToGf28 [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
+key_C1 = map intToGf28 [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
 input_C = map intToGf28 [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
 
 key_C2= map intToGf28 [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17]
@@ -18,7 +18,7 @@ input_C3= map intToGf28 [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0
 --Application de Cipher, Key Expansion:
 
 ----------- Annexe A.1 : 128-bit Cipher Key -----------
-output_key_A = keyExpansion key_A 4 10
+output_key_A1 = keyExpansion key_A1 4 10
 
 
 ----------- Annexe A.2 : 192-bit Cipher Key -----------
@@ -29,7 +29,7 @@ output_key_A3 = keyExpansion key_A3 8 14
 
 ----------- Annexe B : Cipher -----------
 
-w_annexe_B = output_key_A
+w_annexe_B = output_key_A1
 
 -- Vérification du résultat au round 0:
 -- Attendu : 19 a0 9a e9 3d f4 c6 f8 e3 e2 8d 48 be 2b 2a 08 (lu par colonnes)
@@ -55,20 +55,27 @@ output_state_B = cipher 10 input_B w_annexe_B
 
 
 ----------- Annexe C.1 : Chiffrement complet (AES-128) -----------
-w_annexe_C =keyExpansion key_C 4 10
+w_annexe_C =keyExpansion key_C1 4 10
 -- Attendu : 69 c4 e0 d8 6a 7b 04 30 d8 cd b7 80 70 b4 c5 5a
-output_key_C = cipher 10 input_C w_annexe_C
+output_key_C1 = cipher 10 input_C w_annexe_C
 
 ----------- Annexe C.2 : Chiffrement complet (AES-192; Nk=6 Nr=12) -----------
 w_annexe_C2 =keyExpansion key_C2 6 12
 -- Attendu : dd a9 7c a4 86 4c df e0 6e af 70 a0 ec 0d 71 91
 output_key_C2 = cipher 12 input_C2 w_annexe_C2
+----------- Annexe C.2 : Déhiffrement complet (AES-192; Nk=6 Nr=12) -----------
+dechiffrement_key_C2= invCipher output_key_C2 w_annexe_C2 4 12
+input_C2 == dechiffrement_key_C2
 
------------ Annexe C.3 : Chiffrement complet (AES-192; Nk=8 Nr=14) -----------
+
+----------- Annexe C.3 : Chiffrement complet (AES-256; Nk=8 Nr=14) -----------
 w_annexe_C3 =keyExpansion key_C3 8 14
 -- Attendu : 8ea2b7ca516745bfeafc49904b496089
 output_key_C3 = cipher 14 input_C3 w_annexe_C3
 
+----------- Annexe C.3 : Déhiffrement complet (AES-256; Nk=8 Nr=14) -----------
+dechiffrement_key_C3= invCipher output_key_C3 w_annexe_C3 4 14
+input_C3 == dechiffrement_key_C3
 
 -----------Tests du Chiffrement Complet-----------
 
@@ -78,7 +85,7 @@ expected_cipher_C = map intToGf28 [0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x3
 
 -- Tests de validation
 test_cipher_B = output_state_B == expected_cipher_B
-test_cipher_C = output_key_C == expected_cipher_C
+test_cipher_C = output_key_C1 == expected_cipher_C
 
 
 ----------- Tests du Déchiffrement (Inverse Cipher) -----------
@@ -101,23 +108,28 @@ test_inv_mix = invMixColumns state_B_mix == state_B_shift
 -- État attendu : input_B
 test_inv_addkey = state_vers_octets (invAddRoundKey state_B_init (intervale_4 0 w_annexe_B)) == input_B
 
+
+
 nb=4
 nr=10
 dechiffrement_state_B = invCipher output_state_B w_annexe_B nb nr
 dechiffrement_state_B==input_B
 
-dechiffrement_key_C= invCipher output_key_C (keyExpansion key_C 4 10) nb nr
-input_C == dechiffrement_key_C
+dechiffrement_key_C1= invCipher output_key_C1 (keyExpansion key_C1 4 10) nb nr
+input_C == dechiffrement_key_C1
 
 --afficher_key input_B
 --afficher_key dechiffrement_state_B
 --afficher_key input_C
---afficher_key dechiffrement_key_C
+--afficher_key dechiffrement_key_C1
 
 --tests plus petits étapes par étape:
-b_in= output_key_C
+b_in= output_key_C1
 test_1= afficher_key (state_vers_octets (addRoundKey (octets_vers_state b_in) (intervale_4 nr w_annexe_C))) -- intialisation validee
 -- A ce stade j'ai vu l'erreur dans la dernière étape du déchiffrement, qui fonctionne désormais
+
+
+
 
 ----------- Synthèse Visuelle des Tests -----------
 
