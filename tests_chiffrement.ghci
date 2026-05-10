@@ -15,135 +15,118 @@ input_C2= map intToGf28 [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0
 key_C3 = map intToGf28 [0x00 , 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f]
 input_C3= map intToGf28 [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
 
---Application de Cipher, Key Expansion:
-
------------ Annexe A.1 : 128-bit Cipher Key -----------
-output_key_A1 = keyExpansion key_A1 4 10
 
 
------------ Annexe A.2 : 192-bit Cipher Key -----------
-output_key_A2 = keyExpansion key_A2 6 12
+----------- Annexe A : Key Expansion -----------
 
------------ Annexe A.3 : 256-bit Cipher Key -----------
-output_key_A3 = keyExpansion key_A3 8 14
+output_key_A1 = keyExpansion key_A1 4 10 -- Annexe A.1 : 128-bit Cipher Key 
+output_key_A2 = keyExpansion key_A2 6 12 -- Annexe A.2 : 192-bit Cipher Key
+output_key_A3 = keyExpansion key_A3 8 14 -- Annexe A.3 : 256-bit Cipher Key
+
 
 ----------- Annexe B : Cipher -----------
 
 w_annexe_B = output_key_A1
 
 -- Vérification du résultat au round 0:
--- Attendu : 19 a0 9a e9 3d f4 c6 f8 e3 e2 8d 48 be 2b 2a 08 (lu par colonnes)
-state_B_init = addRoundKey (octets_vers_state input_B) (intervale_4 0 w_annexe_B)
+state_B_init = addRoundKey (octets_vers_state input_B) (intervale_4 0 w_annexe_B) -- Attendu : 19 a0 9a e9 3d f4 c6 f8 e3 e2 8d 48 be 2b 2a 08 (lu par colonnes)
 
--- 2. Vérification du résultat après SubBytes au round 1
--- Attendu : d4 e0 b8 1e 27 bf b4 41 11 98 5d 52 ae f1 e5 30
-state_B_sub = subBytes state_B_init
+-- Vérification du résultat après SubBytes au round 1
+state_B_sub = subBytes state_B_init -- Attendu : d4 e0 b8 1e 27 bf b4 41 11 98 5d 52 ae f1 e5 30
 
 -- Vérification du résultat après ShiftRows au round 1
--- Attendu : d4 e0 b8 1e bf b4 41 27 5d 52 11 98 30 ae f1 e5
-state_B_shift = shiftRows state_B_sub
+state_B_shift = shiftRows state_B_sub -- Attendu : d4 e0 b8 1e bf b4 41 27 5d 52 11 98 30 ae f1 e5
 
 -- Vérification du résultat après MixColumns au round 1
--- Attendu : 04 e0 48 28 66 cb f8 06 81 19 d3 26 e5 9a 7a 4c
-state_B_mix = mixColumns state_B_shift
+state_B_mix = mixColumns state_B_shift -- Attendu : 04 e0 48 28 66 cb f8 06 81 19 d3 26 e5 9a 7a 4c
 
--- Vérification du résultat après cipher appliqué aux entrées de l'Annexe B.
--- Attendu : 39 02 dc 19 25 dc 11 6a 84 09 85 0b 1d fb 97 32
-output_state_B = cipher 10 input_B w_annexe_B 
+-- Vérification du résultat après cipher appliqué aux entrées de l'annexe B.
+output_state_B = cipher 10 input_B w_annexe_B -- Attendu : 39 02 dc 19 25 dc 11 6a 84 09 85 0b 1d fb 97 32
 
 
+----------- Annexe C : Chiffrement et déchiffrement complets -----------
 
+-- Annexe C.1 : AES-128
+w_annexe_C = keyExpansion key_C1 4 10
+output_key_C1 = cipher 10 input_C w_annexe_C -- Attendu : 69 c4 e0 d8 6a 7b 04 30 d8 cd b7 80 70 b4 c5 5a
+dechiffrement_key_C1 = invCipher output_key_C1 w_annexe_C 4 10
 
------------ Annexe C.1 : Chiffrement complet (AES-128) -----------
-w_annexe_C =keyExpansion key_C1 4 10
--- Attendu : 69 c4 e0 d8 6a 7b 04 30 d8 cd b7 80 70 b4 c5 5a
-output_key_C1 = cipher 10 input_C w_annexe_C
-
------------ Annexe C.2 : Chiffrement complet (AES-192; Nk=6 Nr=12) -----------
-w_annexe_C2 =keyExpansion key_C2 6 12
--- Attendu : dd a9 7c a4 86 4c df e0 6e af 70 a0 ec 0d 71 91
+-- Annexe C.2 : AES-192 (Nk=6 Nr=12)
+w_annexe_C2 =keyExpansion key_C2 6 12 -- Attendu : dd a9 7c a4 86 4c df e0 6e af 70 a0 ec 0d 71 91
 output_key_C2 = cipher 12 input_C2 w_annexe_C2
------------ Annexe C.2 : Déhiffrement complet (AES-192; Nk=6 Nr=12) -----------
-dechiffrement_key_C2= invCipher output_key_C2 w_annexe_C2 4 12
-input_C2 == dechiffrement_key_C2
+dechiffrement_key_C2 = invCipher output_key_C2 w_annexe_C2 4 12
 
-
------------ Annexe C.3 : Chiffrement complet (AES-256; Nk=8 Nr=14) -----------
-w_annexe_C3 =keyExpansion key_C3 8 14
--- Attendu : 8ea2b7ca516745bfeafc49904b496089
+-- Annexe C.3 : AES-256 (Nk=8 Nr=14)
+w_annexe_C3 = keyExpansion key_C3 8 14 -- Attendu : 8ea2b7ca516745bfeafc49904b496089
 output_key_C3 = cipher 14 input_C3 w_annexe_C3
+dechiffrement_key_C3 = invCipher output_key_C3 w_annexe_C3 4 14
 
------------ Annexe C.3 : Déhiffrement complet (AES-256; Nk=8 Nr=14) -----------
-dechiffrement_key_C3= invCipher output_key_C3 w_annexe_C3 4 14
-input_C3 == dechiffrement_key_C3
+-- Déchiffrement Annexe B (AES-128)
+dechiffrement_state_B = invCipher output_state_B w_annexe_B 4 10
 
------------Tests du Chiffrement Complet-----------
 
--- Traduction des attentes en véritables variables de test (Listes de GF28)
+
+----------- Variables de validation-----------
+
 expected_cipher_B = map intToGf28 [0x39, 0x25, 0x84, 0x1d, 0x02, 0xdc, 0x09, 0xfb, 0xdc, 0x11, 0x85, 0x97, 0x19, 0x6a, 0x0b, 0x32]
-expected_cipher_C = map intToGf28 [0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a]
+expected_cipher_C1 = map intToGf28 [0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a]
+expected_cipher_C2 = map intToGf28 [0xdd, 0xa9, 0x7c, 0xa4, 0x86, 0x4c, 0xdf, 0xe0, 0x6e, 0xaf, 0x70, 0xa0, 0xec, 0x0d, 0x71, 0x91]
+expected_cipher_C3 = map intToGf28 [0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf, 0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89]
 
--- Tests de validation
+
+----------- Tests du chiffrement complet (cipher) -----------
+
 test_cipher_B = output_state_B == expected_cipher_B
-test_cipher_C = output_key_C1 == expected_cipher_C
+test_cipher_C1 = output_key_C1 == expected_cipher_C1
+test_cipher_C2 = output_key_C2 == expected_cipher_C2
+test_cipher_C3 = output_key_C3 == expected_cipher_C3
 
 
------------ Tests du Déchiffrement (Inverse Cipher) -----------
 
+-----------Tests des transformations inverses-----------
 
--- 1. Test InvShiftRows : doit annuler l'effet de ShiftRows du round 1
--- État attendu : d4 e0 b8 1e 27 bf b4 41 11 98 5d 52 ae f1 e5 30 (soit state_B_sub)
-test_inv_shift = invShiftRows state_B_shift == state_B_sub
+-- Test InvShiftRows : doit annuler l'effet de ShiftRows du round 1
+test_inv_shift = invShiftRows state_B_shift == state_B_sub -- État attendu : d4 e0 b8 1e 27 bf b4 41 11 98 5d 52 ae f1 e5 30 (soit state_B_sub)
 
--- 2. Test InvSubBytes : doit annuler l'effet de SubBytes du round 1
--- État attendu : 19 a0 9a e9 3d f4 c6 f8 e3 e2 8d 48 be 2b 2a 08 (soit state_B_init)
-test_inv_sub = invSubBytes state_B_sub == state_B_init
+-- Test InvSubBytes : doit annuler l'effet de SubBytes du round 1
+test_inv_sub = invSubBytes state_B_sub == state_B_init -- État attendu : 19 a0 9a e9 3d f4 c6 f8 e3 e2 8d 48 be 2b 2a 08 (soit state_B_init)
 
--- 3. Test InvMixColumns : doit annuler l'effet de MixColumns du round 1
--- État attendu : d4 e0 b8 1e bf b4 41 27 5d 52 11 98 30 ae f1 e5 (soit state_B_shift)
-test_inv_mix = invMixColumns state_B_mix == state_B_shift
+-- Test InvMixColumns : doit annuler l'effet de MixColumns du round 1
+test_inv_mix = invMixColumns state_B_mix == state_B_shift -- État attendu : d4 e0 b8 1e bf b4 41 27 5d 52 11 98 30 ae f1 e5 (soit state_B_shift)
 
--- 4. Test InvAddRoundKey : vérification de l'involution (A XOR B) XOR B = A
+-- Test InvAddRoundKey : vérification de l'involution (A XOR B) XOR B = A
 -- On ré-applique la sous-clé du round 0 sur state_B_init pour retrouver l'input
--- État attendu : input_B
-test_inv_addkey = state_vers_octets (invAddRoundKey state_B_init (intervale_4 0 w_annexe_B)) == input_B
+test_inv_addkey = state_vers_octets (invAddRoundKey state_B_init (intervale_4 0 w_annexe_B)) == input_B -- État attendu : input_B
+
+
+----------- Tests du déchiffrement complet (round-trip invCipher(cipher(data)) == data)-----------
+test_rt_B  = dechiffrement_state_B == input_B
+test_rt_C1 = dechiffrement_key_C1 == input_C
+test_rt_C2 = dechiffrement_key_C2 == input_C2
+test_rt_C3 = dechiffrement_key_C3 == input_C3
 
 
 
-nb=4
-nr=10
-dechiffrement_state_B = invCipher output_state_B w_annexe_B nb nr
-dechiffrement_state_B==input_B
+----------- Synthèse des tests -----------
 
-dechiffrement_key_C1= invCipher output_key_C1 (keyExpansion key_C1 4 10) nb nr
-input_C == dechiffrement_key_C1
-
---afficher_key input_B
---afficher_key dechiffrement_state_B
---afficher_key input_C
---afficher_key dechiffrement_key_C1
-
---tests plus petits étapes par étape:
-b_in= output_key_C1
-test_1= afficher_key (state_vers_octets (addRoundKey (octets_vers_state b_in) (intervale_4 nr w_annexe_C))) -- intialisation validee
--- A ce stade j'ai vu l'erreur dans la dernière étape du déchiffrement, qui fonctionne désormais
-
-
-
-
------------ Synthèse Visuelle des Tests -----------
-
--- on exécute la fonction suivante dans GHCI pour avoir un résultat immédiat
 :{
-runTests :: IO ()
-runTests = do
-    putStrLn "--- Validation du Chiffrement Complet ---"
-    putStrLn $ "Cipher AES-128 (Annexe B) : " ++ if test_cipher_B then "OK" else "ECHEC"
-    putStrLn $ "Cipher AES-128 (Annexe C) : " ++ if test_cipher_C then "OK" else "ECHEC"
+runTestsChiffrement :: IO ()
+runTestsChiffrement = do
+    putStrLn "\n--- Validation du chiffrement complet ---"
+    putStrLn $ "AES-128 (Annexe B)  : " ++ if test_cipher_B then "OK" else "ECHEC"
+    putStrLn $ "AES-128 (Annexe C1) : " ++ if test_cipher_C1 then "OK" else "ECHEC"
+    putStrLn $ "AES-192 (Annexe C2) : " ++ if test_cipher_C2 then "OK" else "ECHEC"
+    putStrLn $ "AES-256 (Annexe C3) : " ++ if test_cipher_C3 then "OK" else "ECHEC"
     
-    putStrLn "\n--- Validation des transformations Inverses ---"
+    putStrLn "\n--- Validation des transformations inverses ---"
     putStrLn $ "InvShiftRows   : " ++ if test_inv_shift then "OK" else "ECHEC"
     putStrLn $ "InvSubBytes    : " ++ if test_inv_sub then "OK" else "ECHEC"
     putStrLn $ "InvMixColumns  : " ++ if test_inv_mix then "OK" else "ECHEC"
     putStrLn $ "InvAddRoundKey : " ++ if test_inv_addkey then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation globale (round-trip déchiffrement) ---"
+    putStrLn $ "Data annexe B : " ++ if test_rt_B then "OK" else "ECHEC"
+    putStrLn $ "AES-128 (annexe C1) : " ++ if test_rt_C1 then "OK" else "ECHEC"
+    putStrLn $ "AES-192 (annexe C2) : " ++ if test_rt_C2 then "OK" else "ECHEC"
+    putStrLn $ "AES-256 (annexe C3) : " ++ if test_rt_C3 then "OK" else "ECHEC"
 :}

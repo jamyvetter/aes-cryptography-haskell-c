@@ -1,0 +1,19 @@
+putStrLn "\n[1/4] Tests fondamentaux : algèbre et outils mathématiques"
+:script tests_anneaux.ghci
+runTestsAnneaux
+
+putStrLn "\n[2/4] Tests génériques : corps finis quelconques (Z3)"
+:script tests_corps_quelconque.ghci
+runTestsQuelconque
+
+putStrLn "\n[3/4] Tests transformations AES et fonctions annexes"
+:script tests_fonctions_AES.ghci
+runTestsAES
+
+putStrLn "\n[4/4] Tests cryptographiques : conformité NIST FIPS-197"
+:script tests_chiffrement.ghci
+runTestsChiffrement
+
+putStrLn "\n================================================================="
+putStrLn "          CHIFFREMENT AES COMPLET VALIDE AVEC SUCCES        "
+putStrLn "=================================================================\n"

@@ -16,7 +16,7 @@ let b = Polynome [Z3 2, Z3 1]
 -- On s'attend à Q = 2X ([0, 2]) et R = 1 ([1])
 let (q1, r1) = de_pol a b
 
--- Algorithme d'Euclide étendu
+-- Algorithme d'euclide étendu
 let (pgcd1, u1, v1) = euclide (a, b)
 
 -- TEST 2 : Degré supérieur (GF(3))
@@ -41,11 +41,11 @@ let (q4, r4) = de_pol e f
 let (pgcd4, u4, v4) = euclide (e, f)
 
 :{
-runTests :: IO ()
-runTests = do
-    putStrLn "--- TESTS DE LA GENERALISATION DE L'ARITHMETIQUE DES POLYNOMES ---"
+runTestsQuelconque :: IO ()
+runTestsQuelconque = do
+    putStrLn "--- Tests de la generalisation de l'arithmetique des polynomes ---"
 
-    putStrLn "\n--- TEST 1 : GF(3) - Division basique ---"
+    putStrLn "\n--- Test 1 : GF(3) - Division basique ---"
     putStrLn "Polynome A : 2X^2 + X + 1"
     putStrLn $ "A = " ++ show a
     putStrLn "Polynome B : X + 2"
@@ -56,7 +56,7 @@ runTests = do
     putStrLn $ "Quotient Q attendu : [0,2]   -> " ++ if q1 == Polynome [zero, Z3 2] then "OK" else "ECHEC (" ++ show q1 ++ ")"
     putStrLn $ "Reste R attendu    : [1]     -> " ++ if r1 == un then "OK" else "ECHEC (" ++ show r1 ++ ")"
     
-    putStrLn "\n--- 1.2 Algorithme d'Euclide étendu ---"
+    putStrLn "\n--- 1.2 Algorithme d'euclide étendu ---"
     putStrLn $ "PGCD calculé : " ++ show pgcd1
     putStrLn $ "Coef U       : " ++ show u1
     putStrLn $ "Coef V       : " ++ show v1
@@ -75,7 +75,7 @@ runTests = do
     putStrLn $ "Quotient Q attendu : [1,2] -> " ++ if q2 == Polynome [Z3 1, Z3 2] then "OK" else "ECHEC (" ++ show q2 ++ ")"
     putStrLn $ "Reste R attendu : [0,2] -> " ++ if r2 == Polynome [zero, Z3 2] then "OK" else "ECHEC (" ++ show r2 ++ ")"
 
-    putStrLn "\n--- 2.2 Algorithme d'Euclide étendu ---"
+    putStrLn "\n--- 2.2 Algorithme d'euclide étendu ---"
     putStrLn $ "PGCD calculé : " ++ show pgcd2
     putStrLn $ "Coef U       : " ++ show u2
     putStrLn $ "Coef V       : " ++ show v2
@@ -83,13 +83,13 @@ runTests = do
     putStrLn $ "Verification Bezout (A*U + B*V) = " ++ show bezout2
     putStrLn $ "Identité respectée ? -> " ++ if bezout2 == pgcd2 then "OUI (PGCD=" ++ show pgcd2 ++ ")" else "NON"
 
-    putStrLn "\n--- TEST 3 : GF(3) - Dividende < Diviseur ---"
+    putStrLn "\n--- TEST 3 : GF(3) - dividende < diviseur ---"
     
     putStrLn "\n--- 3.1 Division euclidienne ---"
     putStrLn $ "Quotient Q attendu : 0 -> " ++ if q3 == zero then "OK" else "ECHEC (" ++ show q3 ++ ")"
     putStrLn $ "Reste R attendu : B -> " ++ if r3 == b then "OK" else "ECHEC (" ++ show r3 ++ ")"
 
-    putStrLn "\n--- 3.2 Algorithme d'Euclide étendu ---"
+    putStrLn "\n--- 3.2 Algorithme d'euclide étendu ---"
     putStrLn $ "PGCD calculé : " ++ show pgcd3
     putStrLn $ "Coef U       : " ++ show u3
     putStrLn $ "Coef V       : " ++ show v3
@@ -97,8 +97,8 @@ runTests = do
     putStrLn $ "Verification Bezout (B*U + A*V) = " ++ show bezout3
     putStrLn $ "Identité respectée ? -> " ++ if bezout3 == pgcd3 then "OUI (PGCD=" ++ show pgcd3 ++ ")" else "NON"
 
-    putStrLn "\n--- TEST 4 : GF(2) - Changement de corps (Z2) ---"
 
+    putStrLn "\n--- TEST 4 : GF(2) - Changement de corps (Z2) ---"
 
     putStrLn $ "E = " ++ show e
     putStrLn $ "F = " ++ show f
@@ -107,7 +107,7 @@ runTests = do
     putStrLn $ "Quotient Q attendu : [0,1,1] -> " ++ if q4 == Polynome [zero, Z2 1, Z2 1] then "OK" else "ECHEC (" ++ show q4 ++ ")"
     putStrLn $ "Reste R attendu : [1]     -> " ++ if r4 == un then "OK" else "ECHEC (" ++ show r4 ++ ")"
     
-    putStrLn "\n--- 4.2 Algorithme d'Euclide étendu ---"
+    putStrLn "\n--- 4.2 Algorithme d'euclide étendu ---"
     putStrLn $ "PGCD calculé : " ++ show pgcd4
     putStrLn $ "Coef U       : " ++ show u4
     putStrLn $ "Coef V       : " ++ show v4

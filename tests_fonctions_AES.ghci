@@ -1,0 +1,137 @@
+:load AES
+
+----------- Variables de validation (Résultats Attendus) -----------
+
+input_B_bytes = map intToGf28 [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34]
+
+
+----------- 1. Tests des conversions hexadécimales et entières -----------
+test_intToGf28  = gf28ToInt (intToGf28 0x53) == 0x53 -- on utilise l'octet {53}, qui vaut 83 en décimal
+test_gf28ToHex  = gf28ToHex (intToGf28 0x53) == "53"
+test_hex_zero   = gf28ToHex (intToGf28 0x0f) == "0f"
+test_hex_nul    = gf28ToHex (intToGf28 0x00) == "00"
+
+----------- 2. Tests d'affichage (strings) -----------
+test_afficher_key = afficher_key (take 4 input_B_bytes) == "32 43 f6 a8"
+state_B_test = octets_vers_state input_B_bytes
+test_afficher_state = afficher_state state_B_test == "32 43 f6 a8 | 88 5a 30 8d | 31 31 98 a2 | e0 37 07 34"
+
+----------- 3. Tests de manipulation matricielle (state <-> octets) -----------
+-- repasser par l'état doit redonner les octets d'origine
+test_conversion_matrice = state_vers_octets (octets_vers_state input_B_bytes) == input_B_bytes
+
+----------- 4. Tests des fonctions de listes -----------
+liste_test = [1,2,3,4, 5,6,7,8, 9,10,11,12]
+test_intervale_0 = intervale_4 0 liste_test == [1,2,3,4]
+test_intervale_1 = intervale_4 1 liste_test == [5,6,7,8]
+test_intervale_2 = intervale_4 2 liste_test == [9,10,11,12]
+
+-----------5. Tests des sous-fonctions de Key Expansion (annexe A.1) -----------
+-- dans l'annexe A.1 (Round 1), le mot w est {09} {cf} {4f} {3c}
+mot_w3 = GF28X (Polynome (map intToGf28 [0x09, 0xcf, 0x4f, 0x3c]))
+-- après rotWord, il doit devenir {cf} {4f} {3c} {09}
+mot_w3_rot = GF28X (Polynome (map intToGf28 [0xcf, 0x4f, 0x3c, 0x09]))
+test_rotWord = rotWord mot_w3 == mot_w3_rot
+
+-- après subWord (sur mot_w3_rot), il doit devenir {8a} {84} {eb} {01}
+mot_w3_sub = GF28X (Polynome (map intToGf28 [0x8a, 0x84, 0xeb, 0x01]))
+test_subWord = subWord mot_w3_rot == mot_w3_sub
+
+---------- 6. Tests de la taille du Key Expansion -----------
+-- AES-128 (Nk=4, Nr=10) -> génère 44 mots (Nb * (Nr + 1) = 4 * 11)
+key_128 = map intToGf28 [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+test_keyexp_128_len = length (keyExpansion key_128 4 10) == 44
+
+-- AES-192 (Nk=6, Nr=12) -> génère 52 mots (4 * 13)
+key_192 = key_128 ++ take 8 key_128 -- on ajoute 8 octets pour tester la taille
+test_keyexp_192_len = length (keyExpansion key_192 6 12) == 52
+
+-- AES-256 (Nk=8, Nr=14) -> génère 60 mots (4 * 15)
+key_256 = key_128 ++ key_128 -- on ajoute 16 octets pour tester la taille
+test_keyexp_256_len = length (keyExpansion key_256 8 14) == 60
+
+----------- 7. Tests des transformations AES (Round 1 de l'Annexe B) -----------
+-- subByte (Section 5.1.1) : 0x53 -> 0xed
+test_subByte = subByte (intToGf28 0x53) == intToGf28 0xed
+
+-- SubBytes (sur une colonne)
+col1_sb_in = GF28X (Polynome [intToGf28 0x19, intToGf28 0xa0, intToGf28 0x9a, intToGf28 0xe9])
+col1_sb_out = GF28X (Polynome [intToGf28 0xd4, intToGf28 0xe0, intToGf28 0xb8, intToGf28 0x1e])
+test_subBytesCol = subBytesCol col1_sb_in == col1_sb_out
+test_subBytes = subBytes [col1_sb_in, col1_sb_in, col1_sb_in, col1_sb_in] == [col1_sb_out, col1_sb_out, col1_sb_out, col1_sb_out]
+
+-- ShiftRows
+col0_sr_in = GF28X (Polynome [intToGf28 0xd4, intToGf28 0x27, intToGf28 0x11, intToGf28 0xae])
+col1_sr_in = GF28X (Polynome [intToGf28 0xe0, intToGf28 0xbf, intToGf28 0x98, intToGf28 0xf1])
+col2_sr_in = GF28X (Polynome [intToGf28 0xb8, intToGf28 0xb4, intToGf28 0x5d, intToGf28 0xe5])
+col3_sr_in = GF28X (Polynome [intToGf28 0x1e, intToGf28 0x41, intToGf28 0x52, intToGf28 0x30])
+state_sr_in = [col0_sr_in, col1_sr_in, col2_sr_in, col3_sr_in]
+
+col0_sr_out = GF28X (Polynome [intToGf28 0xd4, intToGf28 0xbf, intToGf28 0x5d, intToGf28 0x30])
+col1_sr_out = GF28X (Polynome [intToGf28 0xe0, intToGf28 0xb4, intToGf28 0x52, intToGf28 0xae])
+col2_sr_out = GF28X (Polynome [intToGf28 0xb8, intToGf28 0x41, intToGf28 0x11, intToGf28 0xf1])
+col3_sr_out = GF28X (Polynome [intToGf28 0x1e, intToGf28 0x27, intToGf28 0x98, intToGf28 0xe5])
+state_sr_out = [col0_sr_out, col1_sr_out, col2_sr_out, col3_sr_out]
+test_shiftRows = shiftRows state_sr_in == state_sr_out
+
+-- MixColumns
+col0_mc_in = col0_sr_out
+col0_mc_out = GF28X (Polynome [intToGf28 0x04, intToGf28 0x66, intToGf28 0x81, intToGf28 0xe5])
+test_mixColumns = mixColumns [col0_mc_in, col0_mc_in, col0_mc_in, col0_mc_in] !! 0 == col0_mc_out
+
+
+----------- 8. Tests des transformations inverses -----------
+test_invSubByte = invSubByte (intToGf28 0xed) == intToGf28 0x53
+test_invSubBytesCol = invSubBytesCol col1_sb_out == col1_sb_in
+test_invSubBytes = invSubBytes [col1_sb_out, col1_sb_out] == [col1_sb_in, col1_sb_in]
+
+test_invShiftRows = invShiftRows state_sr_out == state_sr_in
+test_invMixColumns = invMixColumns [col0_mc_out] !! 0 == col0_mc_in
+
+-- invAddRoundKey
+test_invAddRoundKey = invAddRoundKey (addRoundKey state_sr_in state_sr_out) state_sr_out == state_sr_in
+
+
+----------- Synthèse des tests -----------
+
+:{
+runTestsAES :: IO ()
+runTestsAES = do
+    putStrLn "\n--- Validation des fonctions de conversion ---"
+    putStrLn $ "GF28 <-> Int : " ++ if test_intToGf28 then "OK" else "ECHEC"
+    putStrLn $ "GF28 -> Hexa (53) : " ++ if test_gf28ToHex  then "OK" else "ECHEC"
+    putStrLn $ "GF28 -> Hexa (0f) : " ++ if test_hex_zero   then "OK" else "ECHEC"
+    putStrLn $ "GF28 -> Hexa (00) : " ++ if test_hex_nul    then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation de l'affichage (strings) ---"
+    putStrLn $ "Affichage Clef (Ligne)    : " ++ if test_afficher_key   then "OK" else "ECHEC"
+    putStrLn $ "Affichage State (Colonnes): " ++ if test_afficher_state then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation structure matricielle ---"
+    putStrLn $ "Octets <-> State : " ++ if test_conversion_matrice then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation fonctions de listes ---"
+    putStrLn $ "intervale_4 : " ++ if (test_intervale_0 && test_intervale_1 && test_intervale_2) then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation sous-fonctions Key Expansion ---"
+    putStrLn $ "rotWord (AES-128 annexe A.1) : " ++ if test_rotWord then "OK" else "ECHEC"
+    putStrLn $ "subWord (AES-128 annexe A.1) : " ++ if test_subWord then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation tailles des sous-clés (Nb * (Nr+1)) ---"
+    putStrLn $ "KeyExpansion AES-128 (44) : " ++ if test_keyexp_128_len then "OK" else "ECHEC"
+    putStrLn $ "KeyExpansion AES-192 (52) : " ++ if test_keyexp_192_len then "OK" else "ECHEC"
+    putStrLn $ "KeyExpansion AES-256 (60) : " ++ if test_keyexp_256_len then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation des transformations AES ---"
+    putStrLn $ "subByte (0x53 -> 0xed) : " ++ if test_subByte then "OK" else "ECHEC"
+    putStrLn $ "subBytes (matrice) : " ++ if (test_subBytesCol && test_subBytes) then "OK" else "ECHEC"
+    putStrLn $ "shiftRows : " ++ if test_shiftRows then "OK" else "ECHEC"
+    putStrLn $ "mixColumns : " ++ if test_mixColumns then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation des transformations inverses ---"
+    putStrLn $ "invSubByte : " ++ if test_invSubByte then "OK" else "ECHEC"
+    putStrLn $ "invSubBytes : " ++ if (test_invSubBytesCol && test_invSubBytes) then "OK" else "ECHEC"
+    putStrLn $ "invShiftRows : " ++ if test_invShiftRows then "OK" else "ECHEC"
+    putStrLn $ "invMixColumns : " ++ if test_invMixColumns then "OK" else "ECHEC"
+    putStrLn $ "invAddRoundKey : " ++ if test_invAddRoundKey then "OK" else "ECHEC"
+:}

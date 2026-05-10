@@ -59,13 +59,15 @@ mulL (x : xs) ys = addL (map (\y -> mul x y) ys) (zero : mulL xs ys)
 mulp :: (Anneau a) => Polynome a -> Polynome a -> Polynome a
 mulp (Polynome l1) (Polynome l2) = Polynome (mulL l1 l2)
 
+
 -- On met les elements de type Polynome a dans la classe Anneau, avec les operations associées
-instance (Anneau a) => Anneau (Polynome a) where
+instance (Anneau a) => Anneau (Polynome a) where 
   zero = Polynome [zero]
   un = Polynome [un]
   add = addp
   sub = subp
   mul = mulp
+
 
 -- Calcule le degré d'un polynome
 degre :: (Anneau a, Eq a) => Polynome a -> Int
@@ -73,9 +75,6 @@ degre (Polynome l) =
   let l' = nettoyer l
    in if null l' then -1 else length l' - 1
 
-completeListe :: (Anneau a) => [a] -> Int -> [a]
-completeListe l 0 = l
-completeListe l n = completeListe ([zero] ++ l) (n - 1)
 
 -- Effectue la division euclidienne de polynomes
 de_pol :: (Corps a, Eq a) => Polynome a -> Polynome a -> (Polynome a, Polynome a)

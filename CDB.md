@@ -137,3 +137,16 @@
     - **Normalisation et corrections** : Ajout d’une normalisation du PGCD dans `inv_p` afin d’obtenir un polynôme unitaire (coefficient dominant égal à 1) et résolution des problèmes d'inversion liés aux zéros non supprimés en fin de polynômes.
     - **Tests et validation globale** : Création du corps abstrait `Z3` et validation de la généralisation sur plusieurs cas avancés (changement de corps $GF(2)$/$GF(3)$, dividende < diviseur) via `tests_corps_quelconque.ghci`. Vérification du bon fonctionnement de l’AES après les modifications grâce à l’exécution complète de `tests_anneaux.ghci` et `tests_chiffrement.ghci`.
 </details>
+
+---
+
+<details open>
+<summary><b>Finalisation du projet (Après la Séance 4)</b></summary> 
+
+#### Jamyson
+- [x] **Documentation globale** : Rédaction de la documentation complète détaillant l'architecture du projet (`documentation_projet.md`).
+- [x] **Stratégie de validation** : 
+    - Création d'un script de test spécifique aux fonctions de l'AES (`tests_fonctions_AES.ghci`).
+    - Création d'un script de validation globale (`tests_complets.ghci`).
+    - Amélioration et réorganisation générale des scripts de tests existants.
+</details>

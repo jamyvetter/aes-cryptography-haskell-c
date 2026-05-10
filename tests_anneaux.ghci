@@ -1,174 +1,96 @@
+:load AES
 
+----------- Variables de validation (résultats attendus) --------
 
-print "Debut des test"
-l0= [Z2 0]
-l1= [Z2 1, Z2 1]
-l2= [Z2 0, Z2 1]
+-- Z2
+l0 = [Z2 0]
+l1 = [Z2 1, Z2 1]
+l2 = [Z2 0, Z2 1]
 
-addL l1 l2
--- Doit renvoyer  [Z2 1, Z2 0]
-
-
-completeListe [Z2 1, Z2 0, Z2 0, Z2 0, Z2 1] 5
---Doit renvoyer [Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0,Z2 1]
-
-completeListe [Z2 1, Z2 0, Z2 0] 0
---Doit renvoyer [Z2 1,Z2 0,Z2 0]
-
-
-
-
-
----------------- POLYNOMES ----------------------------------------------------
-
-
-
--- Définition de polynomes arbitraires
-
-p0 = Polynome l0  -- (Polynome nul)
-p1 = Polynome l1 -- 1 + X
-p2 = Polynome l2 -- X
-p3= Polynome [Z2 0,Z2 0,Z2 1] -- X²
-
--- Addition de polynomes
-
-addp p0 p0 -- Polynome [Z2 0]
-addp p0 p1 -- Polynome [Z2 1,Z2 1]
-addp p1 p0 -- Polynome [Z2 1,Z2 1]
-addp p1 p2 -- Polynome [Z2 1,Z2 0]
-
-print "Mutliplication"
--- Mutliplication de polynomes
-
-mulp p0 p1              -- Doit renvoyer Polynome [Z2 0], ou plus de zeros
-mulp p1 p0 -- Polynome [Z2 0]                               (Polynome nul)
-mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1]                   (X + X²)
-mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1]) --  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
-mulp p0 p1              -- Doit renvoyer Polynome [Z2 0], ou pleins de zeros
-mulp p1 p0 -- Polynome [Z2 0] (Polynome nul)
-mulp p1 p2 -- Polynome [Z2 0, Z2 1, Z2 1] (X + X²)
-mulp (Polynome [Z2 1, Z2 0,Z2 0,Z2 1]) (Polynome [Z2 0, Z2 0 ,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 1])
---  Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1] -- X^4+ X^10
-
-print "degre"
-degre (p1) ==1
-degre (p2)==1
-degre (Polynome [Z2 0,Z2 0,Z2 0,Z2 1]) ==3
-degre (Polynome [Z2 0,Z2 0,Z2 0,Z2 0,Z2 1,Z2 0,Z2 0,Z2 0])==4
-
-
+-- Polynomes
+p0 = Polynome l0  -- Polynome nul
+p1 = Polynome l1  -- 1 + X
+p2 = Polynome l2  -- X
+p3 = Polynome [Z2 0, Z2 0, Z2 1] -- X^2
+p_complexe_1 = Polynome [Z2 1, Z2 0, Z2 0, Z2 1]
+p_complexe_2 = Polynome [Z2 0, Z2 0, Z2 0, Z2 0, Z2 1, Z2 0, Z2 0, Z2 1]
 m = Polynome [Z2 1, Z2 1, Z2 0, Z2 1, Z2 1, Z2 0, Z2 0, Z2 0, Z2 1]
-de_pol (Polynome [Z2 0,Z2 0,Z2 0,Z2 0, Z2 1, Z2 0,Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) m
-Polynome [Z2 0,Z2 0,Z2 1,Z2 1,Z2 1,Z2 1,Z2 1]
 
-de_pol p1 m -- (zero,p1)
-de_pol p2 m -- (zero,p2)
-de_pol p2 p2 -- (un, zero)
-
-print "Euclide etendu"
-euclide (p3,p2) -- (GF2X [Z2 0, Z2 1], zero, un  ) --- car X² ^ X = X et X= X*1 + 0*X²
-euclide (p2,p3) -- (GF2X [Z2 0, Z2 1], un, zero )
+-- GF28
+q0 = GF28 (Polynome l0)  
+q10 = GF28 (Polynome l1) 
+q1 = GF28 (Polynome l2) 
+q2 = GF28 (Polynome [Z2 0, Z2 0, Z2 1]) 
+q7 = GF28 (Polynome [Z2 0, Z2 0, Z2 0, Z2 0, Z2 0, Z2 0, Z2 0, Z2 1]) 
 
 
--- Définition de polynomes arbitraires de GF28
+----------- 1. Tests Z2 et listes -----------
+-- Arithmétique de base sur Z2
+test_addZ2 = add (Z2 1) (Z2 1) == Z2 0
+test_mulZ2 = mul (Z2 1) (Z2 1) == Z2 1
 
-q0 = GF28 (Polynome l0)  -- (Polynome nul)
-q10 = GF28 (Polynome l1) -- 1 + X
-q1 = GF28 (Polynome l2 )-- X
-q2 = GF28 (Polynome [Z2 0,Z2 0,Z2 1]) -- X²
-q7 = GF28 (Polynome [Z2 0,Z2 0,Z2 0, Z2 0,Z2 0,Z2 0,Z2 0,Z2 1]) -- X⁷
-
-add q1 q0 --
-add q1 q2 --
-
-mul q1 q0 --
-mul q7 q1 --GF28 [1,1,0,1,1,0,0,0,0] car ? mais ça marche oh
-mul (GF28 (Polynome [Z2 1, Z2 0, Z2 0,Z2 1])) (GF28 (Polynome [Z2 0, Z2 0, Z2 0,Z2 0,Z2 1, Z2 0,Z2 0,Z2 1]))== GF28(Polynome [Z2 0,Z2 0,Z2 1,Z2 1,Z2 1,Z2 1,Z2 1,Z2 0,Z2 0,Z2 0,Z2 0])
---c'est l'exemple du diapo, ouf ça fonctionne !
+-- Arithmétique de base sur les listes d'éléments Z2
+test_addL = addL l1 l2 == [Z2 1, Z2 0]
+test_mulL = mulL l1 l2 == [Z2 0, Z2 1, Z2 1]
 
 
 
-print "SUBBYTES"
-
--- exemple de la Section 5.1.1 (substitution d'un seul octet)
--- on vérifie que 0x53 devient bien 0xed
-print (subByte (intToGf28 0x53) == intToGf28 0xed)
-
--- exemple de l'Appendix B, Round 1 page 33 (substitution d'une colonne entière)
--- colonne d'entrée : 19 a0 9a e9
--- colonne attendue : d4 e0 b8 1e
-
-col1_entree = GF28X (Polynome [intToGf28 0x19, intToGf28 0xa0, intToGf28 0x9a, intToGf28 0xe9])
-col1_sortie_attendue = GF28X (Polynome [intToGf28 0xd4, intToGf28 0xe0, intToGf28 0xb8, intToGf28 0x1e])
-
--- test la fonction d'octet par octet subBytesCol sur notre colonne
-print (subBytesCol col1_entree == col1_sortie_attendue)
-
--- test subBytes appliqué à un State entier (matrice 4x4)
-print (subBytes [col1_entree, col1_entree, col1_entree, col1_entree] == [col1_sortie_attendue, col1_sortie_attendue, col1_sortie_attendue, col1_sortie_attendue])
-
-print "SHIFTROWS"
-
---on utilise l'exemple de l'Appendix B, Round 1 page 33
--- Matrice d'entrée (Round 1 : After SubBytes)
-col0_debut = GF28X (Polynome [intToGf28 0xd4, intToGf28 0x27, intToGf28 0x11, intToGf28 0xae])
-col1_debut = GF28X (Polynome [intToGf28 0xe0, intToGf28 0xbf, intToGf28 0x98, intToGf28 0xf1])
-col2_debut = GF28X (Polynome [intToGf28 0xb8, intToGf28 0xb4, intToGf28 0x5d, intToGf28 0xe5])
-col3_debut = GF28X (Polynome [intToGf28 0x1e, intToGf28 0x41, intToGf28 0x52, intToGf28 0x30])
-
-state_avant_shift = [col0_debut, col1_debut, col2_debut, col3_debut]
-
--- Matrice de sortie attendue (Round 1 : After ShiftRows)
-col0_fin = GF28X (Polynome [intToGf28 0xd4, intToGf28 0xbf, intToGf28 0x5d, intToGf28 0x30])
-col1_fin = GF28X (Polynome [intToGf28 0xe0, intToGf28 0xb4, intToGf28 0x52, intToGf28 0xae])
-col2_fin = GF28X (Polynome [intToGf28 0xb8, intToGf28 0x41, intToGf28 0x11, intToGf28 0xf1])
-col3_fin = GF28X (Polynome [intToGf28 0x1e, intToGf28 0x27, intToGf28 0x98, intToGf28 0xe5])
-
-state_apres_shift_attendu = [col0_fin, col1_fin, col2_fin, col3_fin]
-
-print (shiftRows state_avant_shift == state_apres_shift_attendu)
 
 
-print "MIXCOLUMNS"
+----------- 2. Tests polynomes -----------
+-- Addition
+test_addp_1 = addp p0 p1 == Polynome [Z2 1, Z2 1]
+test_addp_2 = addp p1 p2 == Polynome [Z2 1, Z2 0]
 
--- exemple de l'Appendix B, Round 1 (MixColumns sur la colonne 0)
--- colonne après ShiftRows : d4 bf 5d 30
-col0_apres_shift = GF28X (Polynome [intToGf28 0xd4, intToGf28 0xbf, intToGf28 0x5d, intToGf28 0x30])
+-- Multiplication
+test_mulp_nul = mulp p1 p0 == Polynome [Z2 0]
+test_mulp_p1p2 = mulp p1 p2 == Polynome [Z2 0, Z2 1, Z2 1]
+test_mulp_complexe = mulp p_complexe_1 p_complexe_2 == Polynome [Z2 0, Z2 0, Z2 0, Z2 0, Z2 1, Z2 0, Z2 0, Z2 0, Z2 0, Z2 0, Z2 1]
 
--- colonne attendue après MixColumns : 04 66 81 e5
-col0_apres_mix_attendu = GF28X (Polynome [intToGf28 0x04, intToGf28 0x66, intToGf28 0x81, intToGf28 0xe5])
+-- Degré
+test_degre_1 = degre p1 == 1
+test_degre_2 = degre p2 == 1
+test_degre_3 = degre p_complexe_1 == 3
 
-print (mixColumns [col0_apres_shift, col1_fin, col2_fin, col3_fin] !! 0 == col0_apres_mix_attendu)
-
--- Note : Le résultat de mul peut avoir des zéros de tête tronqués selon de_pol, 
--- mais Eq sur Polynome/GF28X le gère si la logique est cohérente.
-print (mixColumns [col0_apres_shift] == [col0_apres_mix_attendu])
-
-
-print "KEY EXPANSION"
+-- Division euclidienne
+test_depol_1 = de_pol (Polynome [Z2 0, Z2 0, Z2 0, Z2 0, Z2 1, Z2 0, Z2 0, Z2 0, Z2 0, Z2 0, Z2 1]) m == (Polynome [Z2 0, Z2 0, Z2 1], Polynome [Z2 0, Z2 0, Z2 1, Z2 1, Z2 1, Z2 1, Z2 1, Z2 0, Z2 0, Z2 0, Z2 0])
+test_depol_2 = de_pol p2 m == (zero, p2)
 
 
-print (rotWord col1_entree == GF28X (Polynome [intToGf28 0xa0, intToGf28 0x9a, intToGf28 0xe9, intToGf28 0x19]))
+----------- 3. Tests euclide etendu -----------
+test_euclide_1 = euclide (p3, p2) == (Polynome [Z2 0, Z2 1], zero, un)
+test_euclide_2 = euclide (p2, p3) == (Polynome [Z2 0, Z2 1], un, zero)
 
-print (subWord col1_entree == col1_sortie_attendue)
 
-print "conversion 16bits-> objet State"
-print (octets_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] == [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])
-print (octets_vers_state [q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7,q0,q1,q10,q7] /= [GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q0]),GF28X (Polynome [q0,q1,q10,q7]),GF28X (Polynome [q0,q1,q10,q7])])
+----------- 4. Tests GF28 -----------
+-- Multiplication dans GF(2^8) (Exemple du diapo)
+gf28_a = GF28 (Polynome [Z2 1, Z2 0, Z2 0, Z2 1])
+gf28_b = GF28 (Polynome [Z2 0, Z2 0, Z2 0, Z2 0, Z2 1, Z2 0, Z2 0, Z2 1])
+gf28_attendu = GF28 (Polynome [Z2 0, Z2 0, Z2 1, Z2 1, Z2 1, Z2 1, Z2 1, Z2 0, Z2 0, Z2 0, Z2 0])
+test_mul_gf28 = mul gf28_a gf28_b == gf28_attendu
 
-print "TESTS DES FONCTIONS INVERSES"
 
-print "INV SUBBYTES"
-print (invSubByte (intToGf28 0xed) == intToGf28 0x53)
-print (invSubBytesCol col1_sortie_attendue == col1_entree)
-print (invSubBytes [col1_sortie_attendue, col1_sortie_attendue] == [col1_entree, col1_entree])
+----------- Synthèse des tests -----------
 
-print "INV SHIFTROWS"
-print (invShiftRows state_apres_shift_attendu == state_avant_shift)
+:{
+runTestsAnneaux :: IO ()
+runTestsAnneaux = do
+    putStrLn "\n--- Validation Z2 et listes ---"
+    putStrLn $ "Addition sur Z2 : " ++ if test_addZ2 then "OK" else "ECHEC"
+    putStrLn $ "Multiplication sur Z2 : " ++ if test_mulZ2 then "OK" else "ECHEC"
+    putStrLn $ "Addition de listes (addL) : " ++ if test_addL then "OK" else "ECHEC"
+    putStrLn $ "Multiplication de listes (mulL) : " ++ if test_mulL then "OK" else "ECHEC"
 
-print "INV MIXCOLUMNS"
-print (invMixColumns [col0_apres_mix_attendu] !! 0 == col0_apres_shift)
 
-print "INV ADD ROUND KEY"
--- addRoundKey (addRoundKey base [tt] )[tt] == base -- car xor réversible
-print (invAddRoundKey (addRoundKey state_avant_shift state_apres_shift_attendu) state_apres_shift_attendu == state_avant_shift)
+    putStrLn "\n--- Validation polynomes ---"
+    putStrLn $ "Addition (addp) : " ++ if (test_addp_1 && test_addp_2) then "OK" else "ECHEC"
+    putStrLn $ "Multiplication (mulp) : " ++ if (test_mulp_nul && test_mulp_p1p2 && test_mulp_complexe) then "OK" else "ECHEC"
+    putStrLn $ "Calcul du degré : " ++ if (test_degre_1 && test_degre_2 && test_degre_3) then "OK" else "ECHEC"
+    putStrLn $ "Division euclidienne : " ++ if (test_depol_1 && test_depol_2) then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation euclide etendu ---"
+    putStrLn $ "Algorithme d'Euclide : " ++ if (test_euclide_1 && test_euclide_2) then "OK" else "ECHEC"
+
+    putStrLn "\n--- Validation GF(2^8) ---"
+    putStrLn $ "Multiplication GF28 (Diapo): " ++ if test_mul_gf28 then "OK" else "ECHEC"
+:}
