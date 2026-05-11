@@ -138,6 +138,10 @@ shiftRows state = state -- si le state ne fait pas 4 colonnes on fait rien
 
 -- MIXCOLUMNS
 
+--On utilise le fait que X^4 == 1 mod (X^4+1) ; X^5=X^4*X == X mod (X^4+1)...
+--Quand on multiplie notre colonne s(x) par a(x),  cela donne un polynôme de degré >4. Mais la réduction module (X^4+1) permet
+--de combiner les coefficients qui 'débordent' (par exemple les coefficients en X^5 sont réduits en coefficients X et ajoutés au terme de --degré X du résultat s', qui correspond bien à l'équation matricielle de la documentation).
+
 -- le polynôme multiplicateur fixe pour MixColumns
 -- a(x) = {03}x^3 + {01}x^2 + {01}x + {02}
 
