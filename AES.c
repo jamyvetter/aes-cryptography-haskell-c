@@ -1,10 +1,7 @@
 /*
 Byte = Octet =  unsigned char (unsigned pour avoir les opérations de décalage shift )
 Word = 32 bits = un tableau de 4 octets. 
-  State (État) : La structure contenant le résultat intermédiaire du chiffrement à chaque ronde.
-   Elle est représentée sous la forme d'un tableau rectangulaire d'octets comprenant 4 lignes et $Nb$ colonnes.
- Pour AES, la taille de bloc est fixe à 128 bits ($Nb=4$), ce qui en fait une matrice $4\times4$ d'octets. 
-
+State = 4*word
 */
 //Définition des types byte,word,state
 typedef unsigned char byte;
