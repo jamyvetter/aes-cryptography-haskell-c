@@ -11,6 +11,15 @@ int compare_state(state s1, state s2) {
     return 1;
 }
 
+void test_fonction(char nom_fonction[],int booleen){ // affiche le message d'erreur ou de réussite selon la condition et le nom de la fonction
+    if (booleen) {
+        printf("[OK] %s\n",nom_fonction);
+    } else {
+        printf("[ECHEC] %s\n",nom_fonction);
+    }
+    //a factoriser avec notation '?'
+}
+
 void test_subBytes(){
     state in = {
         {0x19, 0xa0, 0x9a, 0xe9},
@@ -25,11 +34,7 @@ void test_subBytes(){
         {0xae, 0xf1, 0xe5, 0x30}
     };
     SubBytes(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] SubBytes\n");
-    } else {
-        printf("[ECHEC] SubBytes\n");
-    }
+    test_fonction( "SubBytes",compare_state(in, expected));
 }
 
 void test_shiftRows(){
@@ -46,11 +51,7 @@ void test_shiftRows(){
         {0x30, 0xae, 0xf1, 0xe5}
     };
     ShiftRows(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] ShiftRows\n");
-    } else {
-        printf("[ECHEC] ShiftRows\n");
-    }
+    test_fonction( "ShiftRows",compare_state(in, expected));
 }
 
 void test_invSubBytes(){
@@ -67,11 +68,7 @@ void test_invSubBytes(){
         {0xbe, 0x2b, 0x2a, 0x08}
     };
     InvSubBytes(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] InvSubBytes\n");
-    } else {
-        printf("[ECHEC] InvSubBytes\n");
-    }
+    test_fonction( "InvSubBytes",compare_state(in, expected));
 }
 
 void test_invShiftRows(){
@@ -88,11 +85,7 @@ void test_invShiftRows(){
         {0xae, 0xf1, 0xe5, 0x30}
     };
     InvShiftRows(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] InvShiftRows\n");
-    } else {
-        printf("[ECHEC] InvShiftRows\n");
-    }
+    test_fonction( "InvShiftRows",compare_state(in, expected));
 }
 
 void test_mixColumns(){
@@ -109,11 +102,7 @@ void test_mixColumns(){
         {0xe5, 0x9a, 0x7a, 0x4c}
     };
     MixColumns(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] MixColumns\n");
-    } else {
-        printf("[ECHEC] MixColumns\n");
-    }
+    test_fonction( "MixColumns",compare_state(in, expected));
 }
 
 void test_invMixColumns(){
@@ -130,11 +119,7 @@ void test_invMixColumns(){
         {0x30, 0xae, 0xf1, 0xe5}
     };
     InvMixColumns(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] InvMixColumns\n");
-    } else {
-        printf("[ECHEC] InvMixColumns\n");
-    }
+    test_fonction( "InvMixColmuns",compare_state(in, expected));
 }
 
 void test_addRoundKey(){
@@ -157,15 +142,24 @@ void test_addRoundKey(){
         {0xbe, 0x2b, 0x2a, 0x08}
     };
     AddRoundKey(in, round_key);
-    if (compare_state(in, expected)) {
-        printf("[OK] AddRoundKey\n");
-    } else {
-        printf("[ECHEC] AddRoundKey\n");
-    }
+    test_fonction( "AddRoundKey",compare_state(in, expected));
+}
+
+void test_RotWord(){
+    word in[4]={'a','b','c','d'};
+    RotWord(in);
+    word expected="bcda";
+
+    word in2[4]={'a','b','c','d'};
+    RotWord(in2);RotWord(in2);
+    word expected2="cdab";
+    printf("expected %s\n",in2);
+    test_fonction( "RotWord",!strcmp(in,expected) && !strcmp(in2,expected2) );
 }
 
 int main(){
     printf("=== Lancement des tests AES ===\n");
+    test_RotWord();
     test_subBytes();
     test_shiftRows();
     test_invSubBytes();
