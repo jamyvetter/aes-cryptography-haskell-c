@@ -1,9 +1,10 @@
 #include <stdio.h>
-
+#include <assert.h>
+#include <stdlib.h>
 /*
 Byte = Octet =  unsigned char (unsigned pour avoir les opérations de décalage shift )
 Word = 32 bits = un tableau de 4 octets. 
-State = 4*word
+State = un tableau de 4 word
 Nb=4 pour AES
 */
 //Définition des types byte,word,state
@@ -265,7 +266,8 @@ static const byte sbox[256] = {
 int val_nr(int Nk){ //donne la valeur de Nr pour Nk=key_length. Nb=4 est fixe
     if (Nk==4) return 10;
     if (Nk==6) return 12;
-    else return 14;
+    if (Nk==8) return 14;
+    return 99;//code d'erreur pour appeler exit()
 }
 
 void SubWord(word w){ //substitue la valeur de l'octet à partir de sa valeur et la Sbox
@@ -287,8 +289,7 @@ void xor_word(byte a[4], byte b[4],byte dst[4]){ //modifie dst, fait le xor octe
     }
 }
 
-//peut on faire mieux sans fournir Nr à KeyExpansion ?
-void KeyExpansion(byte key[], word w[],int key_length){ //la taille du tableau w change la donne -> info grace à Nr
+void KeyExpansion(byte key[], word w[],int key_length){
     int Nk=key_length,Nb=4; 
     word temp;
     int i=0;
@@ -308,8 +309,7 @@ void KeyExpansion(byte key[], word w[],int key_length){ //la taille du tableau w
             xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
         }
         else if(Nk>6 && i%Nk==4) SubWord(temp);
-        xor_word(w[i-Nk],temp,w[i]);
-        //w[i] = w[i-Nk] ^ temp;
+        xor_word(w[i-Nk],temp,w[i]); //w[i] = w[i-Nk] ^ temp;
         i++;
     }
 }
@@ -361,8 +361,6 @@ void MixColumns(state s) {
 }
 
 
-
-
 void InvSubBytes(state s) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -409,8 +407,7 @@ void copie_word(byte src[4],byte dst[4]){
 //Auxiliaire, donne à partir de l'indice n les 4premiers elements
 void intervale_4(state src,state dst,int n){
     for(int i=0;i<4;i++){
-        copie_word(src[i],dst[i+n]);
-        //dst[i]=src[i+n];
+        copie_word(src[i],dst[i+n]); //dst[i]=src[i+n];
     }
 }
 //Auxiliaire, copie un state dans un autre
@@ -421,9 +418,9 @@ void copie_state(state src, state dst){
 //Cipher
 void aes_encrypt(state dst, state src, word key[], int key_length){
     state temp; int Nr=val_nr(key_length);
+    if (Nr==99) exit(EXIT_FAILURE);
 
     copie_state(src,dst);//copie de src dans dst, puis on modifie dst
-
     AddRoundKey(dst, key);
     for (int round=1;round<Nr;round++){
         SubBytes(dst);ShiftRows(dst);MixColumns(dst);
@@ -439,13 +436,29 @@ void aes_encrypt(state dst, state src, word key[], int key_length){
 //InvCipher
 void aes_decrypt(state dst, state src, word key[], int key_length){
 // key_length permet toujours de déduire Nk et Nr. Si key_length est incorrect, il faut appeler exit()
+    state temp; int Nr=val_nr(key_length);
+    if (Nr==99) exit(EXIT_FAILURE);
+    copie_state(src,dst);//copie de src dans dst, puis on modifie dst
+    intervale_4(key,temp,Nr*4);
+    AddRoundKey(dst,temp);
 
+    for(int round=Nr-1;round>0;round--){ 
+        InvShiftRows(dst);
+        InvSubBytes(dst);
+        intervale_4(key,temp,round*4);AddRoundKey(dst,temp);        
+        InvMixColumns(dst);
+    }
+    InvShiftRows(dst);
+    InvSubBytes(dst);
+    intervale_4(key,temp,0);AddRoundKey(dst,temp);    
 }
+//faire mieux: la version eqinvcipher est plus rapide potentiellement. //
+
+
+
 
 /*
 Faire en sorte de créer des cas de tests pour le code C à partir du code Haskell
--Faire fonction copie de state
-
 */
 
 
@@ -457,6 +470,15 @@ int compare_state(state s1, state s2) {
         }
     }
     return 1;
+}
+
+void test_fonction(char nom_fonction[],int booleen){ // affiche le message d'erreur ou de réussite selon la condition et le nom de la fonction
+    if (booleen) {
+        printf("[OK] %s\n",nom_fonction);
+    } else {
+        printf("[ECHEC] %s\n",nom_fonction);
+    }
+    //a factoriser avec notation '?'
 }
 
 void test_subBytes(){
@@ -473,11 +495,7 @@ void test_subBytes(){
         {0xae, 0xf1, 0xe5, 0x30}
     };
     SubBytes(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] SubBytes\n");
-    } else {
-        printf("[ECHEC] SubBytes\n");
-    }
+    test_fonction( "SubBytes",compare_state(in, expected));
 }
 
 void test_shiftRows(){
@@ -494,11 +512,7 @@ void test_shiftRows(){
         {0x30, 0xae, 0xf1, 0xe5}
     };
     ShiftRows(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] ShiftRows\n");
-    } else {
-        printf("[ECHEC] ShiftRows\n");
-    }
+    test_fonction( "ShiftRows",compare_state(in, expected));
 }
 
 void test_invSubBytes(){
@@ -515,11 +529,7 @@ void test_invSubBytes(){
         {0xbe, 0x2b, 0x2a, 0x08}
     };
     InvSubBytes(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] InvSubBytes\n");
-    } else {
-        printf("[ECHEC] InvSubBytes\n");
-    }
+    test_fonction( "InvSubBytes",compare_state(in, expected));
 }
 
 void test_invShiftRows(){
@@ -536,11 +546,7 @@ void test_invShiftRows(){
         {0xae, 0xf1, 0xe5, 0x30}
     };
     InvShiftRows(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] InvShiftRows\n");
-    } else {
-        printf("[ECHEC] InvShiftRows\n");
-    }
+    test_fonction( "InvShiftRows",compare_state(in, expected));
 }
 
 void test_mixColumns(){
@@ -557,11 +563,7 @@ void test_mixColumns(){
         {0xe5, 0x9a, 0x7a, 0x4c}
     };
     MixColumns(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] MixColumns\n");
-    } else {
-        printf("[ECHEC] MixColumns\n");
-    }
+    test_fonction( "MixColumns",compare_state(in, expected));
 }
 
 void test_invMixColumns(){
@@ -578,11 +580,7 @@ void test_invMixColumns(){
         {0x30, 0xae, 0xf1, 0xe5}
     };
     InvMixColumns(in);
-    if (compare_state(in, expected)) {
-        printf("[OK] InvMixColumns\n");
-    } else {
-        printf("[ECHEC] InvMixColumns\n");
-    }
+    test_fonction( "InvMixColmuns",compare_state(in, expected));
 }
 
 void test_addRoundKey(){
@@ -605,12 +603,28 @@ void test_addRoundKey(){
         {0xbe, 0x2b, 0x2a, 0x08}
     };
     AddRoundKey(in, round_key);
-    if (compare_state(in, expected)) {
-        printf("[OK] AddRoundKey\n");
-    } else {
-        printf("[ECHEC] AddRoundKey\n");
-    }
+    test_fonction( "AddRoundKey",compare_state(in, expected));
 }
+
+/*
+void test_KeyExpansion{
+    byte key_in = {
+      //  {2b, 7e, 15, 16, 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c
+    };
+    byte expected = {
+        {0xd4, 0xe0, 0xb8, 0x1e},
+        {0xbf, 0xb4, 0x41, 0x27},
+        {0x5d, 0x52, 0x11, 0x98},
+        {0x30, 0xae, 0xf1, 0xe5}
+    };
+    byte out;
+    KeyExpansion(key_in, out,4);
+}
+*/
+
+//Il faut un moyen simple de donner une entrée clef et de l'utiliser
+
+
 
 int main(){
     printf("=== Lancement des tests AES ===\n");
@@ -621,6 +635,7 @@ int main(){
     test_mixColumns();
     test_invMixColumns();
     test_addRoundKey();
+    //assert(compare_state(,));
     printf("===============================\n");
     return 0;
 }
