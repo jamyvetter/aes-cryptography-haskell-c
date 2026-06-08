@@ -9,6 +9,72 @@ typedef unsigned char byte;
 typedef byte word[4];
 typedef byte state[4][4]; // ou un tableau de 4 word : typedef word state[4]
 
+word Rcon[99]; // The round constant word array
+
+static const byte sbox[256];
+
+void SubWord(word w){ //substitue la valeur de l'octet à partir de sa valeur et la Sbox
+    for(int i=0;i<3;i++){
+        w[i]=sbox[w[i]];
+    }
+}
+
+void RotWord(word w){ //Prend un word [a,b,c,d]-> fait [b,c,d,a]
+    byte temp;
+    temp=w[0];
+    w[0]=w[1];w[1]=w[2];w[2]=w[3];w[3]=w[0];
+}
+
+//--------Fonction auxiliaire
+void xor_word(byte a[4], byte b[4],byte dst[4]){ //modifie dst, fait le xor octet par octet pour des word
+    for (int i=0;i<4;i++){
+        dst[i]= a[i] ^ b[i];
+    }
+}
+
+void KeyExpansion(byte key[], word w[], int key_length){ // Nr en paramètre de ça -> à déduire?
+    int Nk=key_length,Nb=4; 
+    int Nr=0;// achanger
+    word temp;
+    int i=0;
+    while (i< Nk){
+        for (int u=0;u<4;u++){ // modification de w[i]
+            w[i][u] = key[4*i+u];
+        }
+        i++;
+    }
+    i=Nk;
+    while (i<Nb*(Nr+1)){
+        for (int u=0;u<4;u++){ // modification de temp par w[i-1]
+            temp[u] = w[i-1][u];
+        }
+        if(i%Nk==0) {
+            RotWord(temp);SubWord(temp);
+            xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
+        }
+        else if(Nk>6 && i%Nk==4) SubWord(temp);
+        xor_word(w[i-Nk],temp,w[i]);
+        //w[i] = w[i-Nk] ^ temp;
+        i++;
+    }
+}
+
+void ShiftRows(state s){
+    for (int i=1;i<4;i++){
+        for(int j=0;j<i+1;j++) RotWord(s[i]);
+    }
+}
+
+void AddRoundKey(state s, word round_key[4]){
+    //Ne doit absolument pas marcher mais compile
+    //int round=,Nb=4,l=round*4;
+    for (int i=0;i<4;i++){
+        for(int c=0;c<4;c++){
+            s[i][c] ^= round_key[i][c];
+        }
+    }
+}
+
 static const byte sbox[256] = {
     0x63,
     0x7c,
@@ -268,135 +334,48 @@ static const byte sbox[256] = {
     0x16
 };
 
-
-word Rcon[99]; // The round constant word array
-
-
-
-void SubWord(word w){
-    for(int i=0;i<3;i++){
-        w[i]=sbox[w[i]];
-}
-}
-
-void RotWord(word w){ //Prend un word [a,b,c,d]-> fait [b,c,d,a]
-    byte temp;
-    temp=w[0];
-    w[0]=w[1];w[1]=w[2];w[2]=w[3];w[3]=w[0];
-}
-
-void KeyExpansion(byte key[], word w[], int key_length){ // Nr en paramètre de ça ? -> à déduire?
-    int Nk=key_length,Nb=4; 
-    int Nr=0;// à changer
-    word temp;
-    int i=0;
-    while (i< Nk){
-        w[i]= {key[4*i],key[4*i+1],key[4*i+2],key[4*i+3]};
-        i++;
-    }
-    i=Nk;
-    while (i<Nb*(Nr+1)){
-        temp= w[i-1];
-        if(i%Nk==0) {
-            RotWord(temp);SubWord(temp);temp^= Rcon[i/Nk];
-        }
-        else if(Nk>6 && i%Nk==4) SubWord(temp);
-        w[i] = w[i-Nk] ^ temp;
-        i++;
-}
-}
-
-
-
-
-
-
-void ShiftRows(state s){
-    for (int i=1;i<4;i++){
-        for(int j=0;j<i+1;j++) RotWord(s[i]);
- }
-}
-
-
-
 void SubBytes(state s) {
-    for (int i=0;i<4;i++){
-        for (int j=0;j<4;j++){
-            s[i][j]= sbox[s[i][j]]
-}
-}
+    for (int i=0;i<4;i++) {
+        for (int j=0;j<4;j++) {
+            s[i][j]= sbox[s[i][j]];
+        }
+    }
 } 
 
 
 
-#define mul2(x) (byte)(((x) << 1) ^ (((x) & 0x80) ? 0x1b : 0x00)) // ici mul2 est la mulplication l'octet (polynome) par x, donc on décale d'un cran vers la gauche (x << 1), si le bit de poids fort est à 1, on applique un XOR avec le polynome irreductible Ox11b
-#define mul3(x) (byte)(mul2(x) ^ (x)) // multiplier par 0x03 revient a multiplier par X+1,
-#define mul4(x) (byte)(mul2(mul2(x)))
-#define mul8(x) (byte)(mul2(mul4(x)))
-
-#define mul9(x) (byte)(mul8(x) ^ (x))
-#define mul11(x) (byte)(mul8(x) ^ mul2(x) ^ (x))
-#define mul13(x) (byte)(mul8(x) ^ mul4(x) ^ (x))
-#define mul14(x) (byte)(mul8(x) ^ mul4(x) ^ mul2(x))
+#define mul2(x) (byte)(((x) << 1) ^ (((x) & 0x80) ? 0x1b : 0x00))
+#define mul3(x) (byte)(mul2(x) ^ (x))
 
 void MixColumns(state s) {
     for (int c = 0; c < 4; c++) {
-        byte s0=s[0][c];
-        byte s1=s[1][c];
-        byte s2 = s[2][c];
-        byte s3 = s[3][c];
+        byte s0=s[c][0];
+        byte s1=s[c][1];
+        byte s2=s[c][2];
+        byte s3=s[c][3];
 
-        s[0][c] = mul2(s0) ^ mul3(s1) ^ s2 ^ s3;
-        s[1][c] = s0 ^ mul2(s1) ^ mul3(s2) ^ s3;
-        s[2][c] = s0 ^ s1 ^ mul2(s2) ^ mul3(s3);
-        s[3][c] = mul3(s0) ^ s1 ^ s2 ^ mul2(s3);
+        s[c][0]=mul2(s0)^ mul3(s1) ^ s2 ^ s3;
+        s[c][1]=s0^mul2(s1) ^ mul3(s2) ^ s3;
+        s[c][2]=s0^s1^mul2(s2)^mul3(s3);
+        s[c][3]=mul3(s0)^s1^s2^mul2(s3);
     }
 }
-
-
-
-
-void AddRoundKey(state s, word round_key[4]){
-    for(int i=0;i<4;i++){
-        for(int c=0;c<4;c++){
-            s[i][c]^= round_key[i][c];
-        }
-    }
-}
-
-
 
 void InvSubBytes(state s) {
-    for (int i=0;i<4;i++) {
-        for (int j=0;j<4;j++) {
-            byte octet=s[i][j];
-            for (int k=0;k<256;k++) {
-                if (sbox[k] == octet) {s[i][j] = (byte)k; break; }
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            byte current = s[i][j];
+            for (int k = 0; k < 256; k++) {
+                if (sbox[k] == current) {s[i][j] = (byte)k; break; }
             }
         }
     }
 }
 
-void InvShiftRows(state s) {
-    for (int i=1;i<4;i++) {
-        for (int j=0;j<4-i;j++) {
-            RotWord(s[i]);
-        }
-    }
-}
 
-void InvMixColumns(state s) {
-    for (int c = 0; c < 4; c++) {
-        byte s0=s[0][c];
-        byte s1=s[1][c];
-        byte s2=s[2][c];
-        byte s3=s[3][c];
-        s[0][c] = mul14(s0) ^ mul11(s1) ^ mul13(s2) ^ mul9(s3);
-        s[1][c] = mul9(s0)  ^ mul14(s1) ^ mul11(s2) ^ mul13(s3);
-        s[2][c] = mul13(s0) ^ mul9(s1)  ^ mul14(s2) ^ mul11(s3);
-        s[3][c] = mul11(s0) ^ mul13(s1) ^ mul9(s2)  ^ mul14(s3);
-    }
-}
+
+void InvShiftRows(state s);
+void InvMixColumns(state s);
 
 void aes_encrypt(state dst, state src, word key[], int key_length);
 void aes_decrypt(state dst, state src, word key[], int key_length);
