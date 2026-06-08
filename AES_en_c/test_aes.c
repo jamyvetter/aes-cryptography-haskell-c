@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "AES.h"
+#include "string.h"
 
 // --- Helper pour les tests ---
 int compare_state(state s1, state s2) {
@@ -12,12 +13,7 @@ int compare_state(state s1, state s2) {
 }
 
 void test_fonction(char nom_fonction[],int booleen){ // affiche le message d'erreur ou de réussite selon la condition et le nom de la fonction
-    if (booleen) {
-        printf("[OK] %s\n",nom_fonction);
-    } else {
-        printf("[ECHEC] %s\n",nom_fonction);
-    }
-    //a factoriser avec notation '?'
+        printf("[%s] %s\n",booleen ? "OK" : "ECHEC",nom_fonction);
 }
 
 void test_subBytes(){
@@ -146,15 +142,14 @@ void test_addRoundKey(){
 }
 
 void test_RotWord(){
-    word in[4]={'a','b','c','d'};
+    word in={'a','b','c','d'};
     RotWord(in);
     word expected="bcda";
 
-    word in2[4]={'a','b','c','d'};
+    word in2={'a','b','c','d'};
     RotWord(in2);RotWord(in2);
     word expected2="cdab";
-    printf("expected %s\n",in2);
-    test_fonction( "RotWord",!strcmp(in,expected) && !strcmp(in2,expected2) );
+    test_fonction( "RotWord",(memcmp(in,expected,4)==0) && (memcmp(in2,expected2,4)==0) );
 }
 
 int main(){

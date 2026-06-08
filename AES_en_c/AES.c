@@ -6,6 +6,8 @@
 // The round constant word array Rcon[i] contains the values given by [x^(i-1), {00}, {00}, {00}]
 // Les indices vont de 1 à 14 (maximum pour AES-256). L'indice 0 n'est pas utilisé.
 const word Rcon[15] = {
+};
+    /*
     {0x00, 0x00, 0x00, 0x00}, // Rcon[0] (inutilisé)
     {0x01, 0x00, 0x00, 0x00}, // Rcon[1]
     {0x02, 0x00, 0x00, 0x00}, // Rcon[2]
@@ -22,6 +24,7 @@ const word Rcon[15] = {
     {0xab, 0x00, 0x00, 0x00}, // Rcon[13]
     {0x4d, 0x00, 0x00, 0x00}  // Rcon[14] (AES-256 s'arrête ici)
 };
+*/
 
 static const byte sbox[256] = {
     0x63,0x7c,0x77, 0x7b,0xf2, 0x6b, 0x6f, 0xc5,0x30, 0x01,  0x67,0x2b, 0xfe,0xd7,0xab,0x76,0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,
@@ -58,7 +61,7 @@ int val_nr(int Nk){ //donne la valeur de Nr pour Nk=key_length. Nb=4 est fixe
 }
 
 void SubWord(word w){ //substitue la valeur de l'octet à partir de sa valeur et la Sbox
-    for(int i=0;i<3;i++){
+    for(int i=0;i<4;i++){
         w[i]=sbox[w[i]];
     }
 }
@@ -150,6 +153,7 @@ void InvSubBytes(state s) {
     }
 }
 
+//Super long, il faudrait utiliser reverse-Sbox
 
 
 void InvShiftRows(state s){
@@ -196,34 +200,24 @@ void copie_word(byte src[4],byte dst[4]){
     }
 }
 
-
-
-//Auxiliaire, donne à partir de l'indice n les 4 premiers elements
-void intervale_4(state src,state dst,int n){
-    for(int i=0;i<4;i++){
-        copie_word(src[i],dst[i+n]); //dst[i]=src[i+n];
-    }
-}
 //Auxiliaire, copie un state dans un autre
 void copie_state(state src, state dst){
-    intervale_4(src,dst,0);
+    memcpy(dst,src,16);
 }
 
 //Cipher
 void aes_encrypt(state dst, state src, word key[], int key_length){
-    state temp; int Nr=val_nr(key_length);
+    int Nr=val_nr(key_length);
     if (Nr==99) exit(EXIT_FAILURE);
 
     copie_state(src,dst);//copie de src dans dst, puis on modifie dst
     AddRoundKey(dst, key);
     for (int round=1;round<Nr;round++){
         SubBytes(dst);ShiftRows(dst);MixColumns(dst);
-        intervale_4(key,temp,round*4);
-        AddRoundKey(dst, temp);
+        AddRoundKey(dst, &key[round*4]);
     }
     SubBytes(dst);ShiftRows(dst);
-    intervale_4(key,temp,Nr*4); //modifie temp
-    AddRoundKey(dst, temp);
+    AddRoundKey(dst, &key[Nr*NB]);
 
 }
 
@@ -233,18 +227,16 @@ void aes_decrypt(state dst, state src, word key[], int key_length){
     state temp; int Nr=val_nr(key_length);
     if (Nr==99) exit(EXIT_FAILURE);
     copie_state(src,dst);//copie de src dans dst, puis on modifie dst
-    intervale_4(key,temp,Nr*4);
-    AddRoundKey(dst,temp);
-
+    AddRoundKey(dst,&key[Nr*NB]);
     for(int round=Nr-1;round>0;round--){ 
         InvShiftRows(dst);
         InvSubBytes(dst);
-        intervale_4(key,temp,round*4);AddRoundKey(dst,temp);        
+        AddRoundKey(dst,&key[round*4]);        
         InvMixColumns(dst);
     }
     InvShiftRows(dst);
     InvSubBytes(dst);
-    intervale_4(key,temp,0);AddRoundKey(dst,temp);    
+    AddRoundKey(dst,&temp[0]);    
 }
 //faire mieux: la version eqinvcipher est plus rapide potentiellement. //
 
@@ -257,13 +249,10 @@ Faire en sorte de créer des cas de tests pour le code C à partir du code Haske
 void afficher_state(state s){ // Affiche sous format matrice, avec chaque octet sous forme de nombre hexadécimal
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            printf(" %x",s[i][j]);    
+            printf(" %02x",s[i][j]); //%02 permet d'afficher 2 caratères (enlève le problème d'affichage sur 5 par exemple)   
         }
         printf("\n");
     }
 }
 
 
-int main(){
-    return 0;
-}

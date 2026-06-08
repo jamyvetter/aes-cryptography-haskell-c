@@ -1,6 +1,6 @@
 #ifndef AES_H
 #define AES_H
-#define Nb 4
+#define NB 4
 
 /*
 Byte = Octet =  unsigned char (unsigned pour avoir les opérations de décalage shift )
@@ -12,7 +12,7 @@ Nb=4 pour AES
 
 typedef unsigned char byte;
 typedef byte word[NB];
-typedef byte state[Nb][Nb];
+typedef byte state[NB][NB];
 
 void SubWord(word w);
 void RotWord(word w);
@@ -20,7 +20,7 @@ void KeyExpansion(byte key[], word w[], int key_length);
 void SubBytes(state s);
 void ShiftRows(state s);
 void MixColumns(state s);
-void AddRoundKey(state s, word round_key[Nb]);
+void AddRoundKey(state s, word round_key[NB]);
 void InvSubBytes(state s);
 void InvShiftRows(state s);
 void InvMixColumns(state s);
