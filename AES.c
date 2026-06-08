@@ -324,16 +324,14 @@ void InvSubBytes(state s) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             byte current = s[i][j];
-            // Recherche de l'antécédent directement dans la sbox
             for (int k = 0; k < 256; k++) {
-                if (sbox[k] == current) {
-                    s[i][j] = (byte)k;
-                    break;
-                }
+                if (sbox[k] == current) {s[i][j] = (byte)k; break; }
             }
         }
     }
 }
+
+
 
 void InvShiftRows(state s);
 void InvMixColumns(state s);
