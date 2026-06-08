@@ -7,7 +7,7 @@ typedef byte state[4][4];
 
 void SubWord(word w);
 void RotWord(word w);
-void KeyExpansion(byte key[], word w[], int key_length);
+void KeyExpansion(byte key[], word w[], int Nr, int key_length);
 void SubBytes(state s);
 void ShiftRows(state s);
 void MixColumns(state s);

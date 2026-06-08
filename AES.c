@@ -8,7 +8,25 @@ Nb=4 pour AES
 */
 //Définition des types byte,word,state
 #include "AES.h"
-word Rcon[99]; // The round constant word array
+// The round constant word array Rcon[i] contains the values given by [x^(i-1), {00}, {00}, {00}]
+// Les indices vont de 1 à 14 (maximum pour AES-256). L'indice 0 n'est pas utilisé.
+const word Rcon[15] = {
+    {0x00, 0x00, 0x00, 0x00}, // Rcon[0] (inutilisé)
+    {0x01, 0x00, 0x00, 0x00}, // Rcon[1]
+    {0x02, 0x00, 0x00, 0x00}, // Rcon[2]
+    {0x04, 0x00, 0x00, 0x00}, // Rcon[3]
+    {0x08, 0x00, 0x00, 0x00}, // Rcon[4]
+    {0x10, 0x00, 0x00, 0x00}, // Rcon[5]
+    {0x20, 0x00, 0x00, 0x00}, // Rcon[6]
+    {0x40, 0x00, 0x00, 0x00}, // Rcon[7]
+    {0x80, 0x00, 0x00, 0x00}, // Rcon[8]
+    {0x1b, 0x00, 0x00, 0x00}, // Rcon[9]
+    {0x36, 0x00, 0x00, 0x00}, // Rcon[10] (AES-128 s'arrête ici)
+    {0x6c, 0x00, 0x00, 0x00}, // Rcon[11]
+    {0xd8, 0x00, 0x00, 0x00}, // Rcon[12]
+    {0xab, 0x00, 0x00, 0x00}, // Rcon[13]
+    {0x4d, 0x00, 0x00, 0x00}  // Rcon[14] (AES-256 s'arrête ici)
+};
 
 static const byte sbox[256] = {
     0x63,0x7c,0x77, 0x7b,0xf2, 0x6b, 0x6f, 0xc5,
@@ -328,27 +346,18 @@ void SubBytes(state s) {
     }
 } 
 
-
-#define mul2(x) (byte)(((x) << 1) ^ (((x) & 0x80) ? 0x1b : 0x00)) // ici mul2 est la mulplication l'octet (polynome) par x, donc on décale d'un cran vers la gauche (x << 1), si le bit de poids fort est à 1, on applique un XOR avec le polynome irreductible Ox11b
-#define mul3(x) (byte)(mul2(x) ^ (x)) // multiplier par 0x03 revient a multiplier par X+1,
-#define mul4(x) (byte)(mul2(mul2(x)))
-#define mul8(x) (byte)(mul2(mul4(x)))
-
-#define mul9(x) (byte)(mul8(x) ^ (x))
-#define mul11(x) (byte)(mul8(x) ^ mul2(x) ^ (x))
-#define mul13(x) (byte)(mul8(x) ^ mul4(x) ^ (x))
-#define mul14(x) (byte)(mul8(x) ^ mul4(x) ^ mul2(x))
+// Definition de la notation xtime (multiplication par le polynome X => décalage a gauche)
+byte xtime(byte x) {
+    return (x << 1) ^ (((x & 0x80) != 0) ? 0x1b : 0x00); //si le bit de poids fort était à 1 on xor avec 0x1b sinon on decale tout simplement
+}
 
 void MixColumns(state s) {
     for (int c = 0; c < 4; c++) {
-        byte s0=s[0][c];
-        byte s1=s[1][c];
-        byte s2 = s[2][c];
-        byte s3 = s[3][c];
-        s[0][c] = mul2(s0) ^ mul3(s1) ^ s2 ^ s3;
-        s[1][c] = s0 ^ mul2(s1) ^ mul3(s2) ^ s3;
-        s[2][c] = s0 ^ s1 ^ mul2(s2) ^ mul3(s3);
-        s[3][c] = mul3(s0) ^ s1 ^ s2 ^ mul2(s3);
+        byte s0 = s[0][c], s1 = s[1][c], s2 = s[2][c], s3 = s[3][c];
+        s[0][c] = xtime(s0) ^ (xtime(s1) ^ s1) ^ s2 ^ s3;
+        s[1][c] = s0 ^ xtime(s1) ^ (xtime(s2) ^ s2) ^ s3;
+        s[2][c] = s0 ^ s1 ^ xtime(s2) ^ (xtime(s3) ^ s3);
+        s[3][c] = (xtime(s0) ^ s0) ^ s1 ^ s2 ^ xtime(s3);
     }
 }
 
@@ -377,17 +386,32 @@ void InvShiftRows(state s){
 }
 
 void InvMixColumns(state s) {
-    for (int c = 0; c < 4; c++){
-        byte s0=s[0][c];
-        byte s1=s[1][c];
-        byte s2=s[2][c];
-        byte s3=s[3][c];
-        s[0][c] = mul14(s0) ^ mul11(s1) ^ mul13(s2) ^ mul9(s3);
-        s[1][c] = mul9(s0)  ^ mul14(s1) ^ mul11(s2) ^ mul13(s3);
-        s[2][c] = mul13(s0) ^ mul9(s1)  ^ mul14(s2) ^ mul11(s3);
-        s[3][c] = mul11(s0) ^ mul13(s1) ^ mul9(s2)  ^ mul14(s3);
+    for (int c=0;c<4; c++) {
+        byte s0=s[0][c], s1=s[1][c], s2=s[2][c], s3=s[3][c];
+        
+        // 14=0x0E (x^3+x^2+x), 11=0x0B (x^3+x+1), 13=0x0D (x^3+x^2+1), 9=0x09 (x^3+1)
+        s[0][c] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ xtime(s0)) ^ //0x0E * s0 
+                  (xtime(xtime(xtime(s1))) ^ xtime(s1) ^ s1) ^ //0x0B * s1 
+                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ s2) ^ //0x0D * s2 
+                  (xtime(xtime(xtime(s3))) ^ s3); //0x09 * s3
+                  
+        s[1][c] = (xtime(xtime(xtime(s0))) ^ s0) ^ //0x09 * s0
+                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ xtime(s1)) ^ //0x0E * s1 
+                  (xtime(xtime(xtime(s2))) ^ xtime(s2) ^ s2) ^ //0x0B * s2 
+                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ s3); //0x0D * s3
+                  
+        s[2][c] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ s0) ^ //0x0D * s0
+                  (xtime(xtime(xtime(s1))) ^ s1) ^ //0x09 * s1
+                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ xtime(s2)) ^ //0x0E * s2
+                  (xtime(xtime(xtime(s3))) ^ xtime(s3) ^ s3); //0x0B * s3
+                  
+        s[3][c] = (xtime(xtime(xtime(s0))) ^ xtime(s0) ^ s0) ^ //0x0B * s0
+                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ s1) ^ //0x0D * s1
+                  (xtime(xtime(xtime(s2))) ^ s2) ^ //0x09 * s2
+                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ xtime(s3)); //0x0E * s3
+    }
 }
-}
+
 
 int val_nr(int Nk){ //donne la valeur de Nr pour Nk=key_length. Nb=4 est fixe
     if (Nk==4) return 10;
