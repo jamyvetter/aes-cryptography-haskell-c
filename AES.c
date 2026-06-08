@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 /*
 Byte = Octet =  unsigned char (unsigned pour avoir les opérations de décalage shift )
 Word = 32 bits = un tableau de 4 octets. 
@@ -606,28 +607,32 @@ void test_addRoundKey(){
     test_fonction( "AddRoundKey",compare_state(in, expected));
 }
 
-/*
-void test_KeyExpansion{
-    byte key_in = {
-      //  {2b, 7e, 15, 16, 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c
-    };
-    byte expected = {
-        {0xd4, 0xe0, 0xb8, 0x1e},
-        {0xbf, 0xb4, 0x41, 0x27},
-        {0x5d, 0x52, 0x11, 0x98},
-        {0x30, 0xae, 0xf1, 0xe5}
-    };
-    byte out;
-    KeyExpansion(key_in, out,4);
+void test_RotWord(){
+    word in[4]={'a','b','c','d'};
+    RotWord(in);
+    word expected="bcda";
+
+    word in2[4]={'a','b','c','d'};
+    RotWord(in2);RotWord(in2);
+    word expected2="cdab";
+    printf("expected %s\n",in2);
+    test_fonction( "RotWord",!strcmp(in,expected) && !strcmp(in2,expected2) );
 }
-*/
 
-//Il faut un moyen simple de donner une entrée clef et de l'utiliser
-
+//Fonction auxiliaire
+void afficher_state(state s){ // Affiche sous format matrice, avec chaque octet sous forme de nombre hexadécimal
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            printf(" %x",s[i][j]);    
+        }
+        printf("\n");
+    }
+}
 
 
 int main(){
     printf("=== Lancement des tests AES ===\n");
+    test_RotWord();
     test_subBytes();
     test_shiftRows();
     test_invSubBytes();
