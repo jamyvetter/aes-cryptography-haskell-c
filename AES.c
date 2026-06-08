@@ -261,6 +261,13 @@ static const byte sbox[256] = {
     0x16
 
 };
+
+int val_nr(int Nk){ //donne la valeur de Nr pour Nk=key_length. Nb=4 est fixe
+    if (Nk==4) return 10;
+    if (Nk==6) return 12;
+    else return 14;
+}
+
 void SubWord(word w){ //substitue la valeur de l'octet à partir de sa valeur et la Sbox
     for(int i=0;i<3;i++){
         w[i]=sbox[w[i]];
@@ -281,7 +288,7 @@ void xor_word(byte a[4], byte b[4],byte dst[4]){ //modifie dst, fait le xor octe
 }
 
 //peut on faire mieux sans fournir Nr à KeyExpansion ?
-void KeyExpansion(byte key[], word w[],int Nr, int key_length){ //la taille du tableau w change la donne -> info grace à Nr
+void KeyExpansion(byte key[], word w[],int key_length){ //la taille du tableau w change la donne -> info grace à Nr
     int Nk=key_length,Nb=4; 
     word temp;
     int i=0;
@@ -292,7 +299,7 @@ void KeyExpansion(byte key[], word w[],int Nr, int key_length){ //la taille du t
         i++;
     }
     i=Nk;
-    while (i<Nb*(Nr+1)){
+    while (i<Nb*(val_nr(Nk)+1)){
         for (int u=0;u<4;u++){ // modification de temp par w[i-1]
             temp[u] = w[i-1][u];
         }
@@ -320,8 +327,6 @@ void AddRoundKey(state s, word round_key[4]){
         }
     }
 }
-
-
 
 void SubBytes(state s) {
     for (int i=0;i<4;i++) {
@@ -369,8 +374,6 @@ void InvSubBytes(state s) {
     }
 }
 
-
-
 void InvShiftRows(state s) {
     for (int i=1;i<4;i++) {
         for (int j=0;j<4-i;j++) {
@@ -392,18 +395,34 @@ void InvMixColumns(state s) {
     }
 }
 
-int val_nr(int Nk){ //donne la valeur de Nr pour Nk=key_length. Nb=4 est fixe
-    if (Nk==4) return 10;
-    if (Nk==6) return 12;
-    else return 14;
+
+//Auxiliaire, fait la copie d'un word dans un autre.
+// Faire memcpy plus tard plus rapide //
+void copie_word(byte src[4],byte dst[4]){
+    for(int i=0;i<4;i++){   
+        dst[i]=src[i];
+    }
 }
 
+
+
+//Auxiliaire, donne à partir de l'indice n les 4premiers elements
+void intervale_4(state src,state dst,int n){
+    for(int i=0;i<4;i++){
+        copie_word(src[i],dst[i+n]);
+        //dst[i]=src[i+n];
+    }
+}
+//Auxiliaire, copie un state dans un autre
+void copie_state(state src, state dst){
+    intervale_4(src,dst,0);
+}
 
 //Cipher
 void aes_encrypt(state dst, state src, word key[], int key_length){
     state temp; int Nr=val_nr(key_length);
 
-    //copie de src dans dst, puis on modifie dst
+    copie_state(src,dst);//copie de src dans dst, puis on modifie dst
 
     AddRoundKey(dst, key);
     for (int round=1;round<Nr;round++){
@@ -416,16 +435,15 @@ void aes_encrypt(state dst, state src, word key[], int key_length){
     AddRoundKey(dst, temp);
 
 }
-void aes_decrypt(state dst, state src, word key[], int key_length);
+
+//InvCipher
+void aes_decrypt(state dst, state src, word key[], int key_length){
 // key_length permet toujours de déduire Nk et Nr. Si key_length est incorrect, il faut appeler exit()
 
-
+}
 
 /*
 Faire en sorte de créer des cas de tests pour le code C à partir du code Haskell
-
-
--fonction copie de word 
 -Faire fonction copie de state
 
 */
