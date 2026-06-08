@@ -10,85 +10,12 @@ Nb=4 pour AES
 #include "AES.h"
 word Rcon[99]; // The round constant word array
 
-static const byte sbox[256];
-
-void SubWord(word w){ //substitue la valeur de l'octet à partir de sa valeur et la Sbox
-    for(int i=0;i<3;i++){
-        w[i]=sbox[w[i]];
-    }
-}
-
-void RotWord(word w){ //Prend un word [a,b,c,d]-> fait [b,c,d,a]
-    byte temp;
-    temp=w[0];
-    w[0]=w[1];w[1]=w[2];w[2]=w[3];w[3]=temp;
-}
-
-//--------Fonction auxiliaire
-void xor_word(byte a[4], byte b[4],byte dst[4]){ //modifie dst, fait le xor octet par octet pour des word
-    for (int i=0;i<4;i++){
-        dst[i]= a[i] ^ b[i];
-    }
-}
-
-void KeyExpansion(byte key[], word w[], int key_length){ // Nr en paramètre de ça -> à déduire?
-    int Nk=key_length,Nb=4; 
-    int Nr=0;// achanger
-    word temp;
-    int i=0;
-    while (i< Nk){
-        for (int u=0;u<4;u++){ // modification de w[i]
-            w[i][u] = key[4*i+u];
-        }
-        i++;
-    }
-    i=Nk;
-    while (i<Nb*(Nr+1)){
-        for (int u=0;u<4;u++){ // modification de temp par w[i-1]
-            temp[u] = w[i-1][u];
-        }
-        if(i%Nk==0) {
-            RotWord(temp);SubWord(temp);
-            xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
-        }
-        else if(Nk>6 && i%Nk==4) SubWord(temp);
-        xor_word(w[i-Nk],temp,w[i]);
-        //w[i] = w[i-Nk] ^ temp;
-        i++;
-    }
-}
-
-void ShiftRows(state s){
-    for (int i=1;i<4;i++){
-        for(int j=0;j<i;j++) RotWord(s[i]);
-    }
-}
-
-void AddRoundKey(state s, word round_key[4]){
-    for (int i = 0; i < 4; i++) {
-        for (int c = 0; c < 4; c++) {
-            s[c][i] ^= round_key[i][c];
-        }
-    }
-}
-
 static const byte sbox[256] = {
-    0x63,
-    0x7c,
-    0x77,
-    0x7b,
-    0xf2,
-    0x6b,
-    0x6f,
-    0xc5,
-    0x30,
-    0x01,
-    0x67,
-    0x2b,
-    0xfe,
+    0x63,0x7c,0x77, 0x7b,0xf2, 0x6b, 0x6f, 0xc5,
+    0x30, 0x01,  0x67,
+    0x2b, 0xfe,
     0xd7,
-    0xab,
-    0x76,
+    0xab,0x76,
     0xca,
     0x82,
     0xc9,
@@ -329,7 +256,69 @@ static const byte sbox[256] = {
     0x54,
     0xbb,
     0x16
+
 };
+void SubWord(word w){ //substitue la valeur de l'octet à partir de sa valeur et la Sbox
+    for(int i=0;i<3;i++){
+        w[i]=sbox[w[i]];
+    }
+}
+
+void RotWord(word w){ //Prend un word [a,b,c,d]-> fait [b,c,d,a]
+    byte temp;
+    temp=w[0];
+    w[0]=w[1];w[1]=w[2];w[2]=w[3];w[3]=temp;
+}
+
+//--------Fonction auxiliaire
+void xor_word(byte a[4], byte b[4],byte dst[4]){ //modifie dst, fait le xor octet par octet pour des word
+    for (int i=0;i<4;i++){
+        dst[i]= a[i] ^ b[i];
+    }
+}
+
+//peut on faire mieux sans fournir Nr à KeyExpansion ?
+void KeyExpansion(byte key[], word w[],int Nr, int key_length){ //la taille du tableau w change la donne -> info grace à Nr
+    int Nk=key_length,Nb=4; 
+    word temp;
+    int i=0;
+    while (i< Nk){
+        for (int u=0;u<4;u++){ // modification de w[i]
+            w[i][u] = key[4*i+u];
+        }
+        i++;
+    }
+    i=Nk;
+    while (i<Nb*(Nr+1)){
+        for (int u=0;u<4;u++){ // modification de temp par w[i-1]
+            temp[u] = w[i-1][u];
+        }
+        if(i%Nk==0) {
+            RotWord(temp);SubWord(temp);
+            xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
+        }
+        else if(Nk>6 && i%Nk==4) SubWord(temp);
+        xor_word(w[i-Nk],temp,w[i]);
+        //w[i] = w[i-Nk] ^ temp;
+        i++;
+    }
+}
+
+void ShiftRows(state s){
+    for (int i=1;i<4;i++){
+        for(int j=0;j<i;j++) RotWord(s[i]);
+    }
+}
+
+void AddRoundKey(state s, word round_key[4]){
+    for (int i = 0; i < 4; i++) {
+        for (int c = 0; c < 4; c++) {
+            s[c][i] ^= round_key[i][c];
+        }
+    }
+}
+
+
 
 void SubBytes(state s) {
     for (int i=0;i<4;i++) {
@@ -400,7 +389,30 @@ void InvMixColumns(state s) {
 }
 }
 
-void aes_encrypt(state dst, state src, word key[], int key_length);
+int val_nr(int Nk){ //donne la valeur de Nr pour Nk=key_length. Nb=4 est fixe
+    if (Nk==4) return 10;
+    if (Nk==6) return 12;
+    else return 14;
+}
+
+
+//Cipher
+void aes_encrypt(state dst, state src, word key[], int key_length){
+    state temp; int Nr=val_nr(key_length);
+
+    //copie de src dans dst, puis on modifie dst
+
+    AddRoundKey(dst, key);
+    for (int round=1;round<Nr;round++){
+        SubBytes(dst);ShiftRows(dst);MixColumns(dst);
+        intervale_4(key,temp,round*4);
+        AddRoundKey(dst, temp);
+    }
+    SubBytes(dst);ShiftRows(dst);
+    intervale_4(key,temp,Nr*4); //modifie temp
+    AddRoundKey(dst, temp);
+
+}
 void aes_decrypt(state dst, state src, word key[], int key_length);
 // key_length permet toujours de déduire Nk et Nr. Si key_length est incorrect, il faut appeler exit()
 
@@ -408,6 +420,10 @@ void aes_decrypt(state dst, state src, word key[], int key_length);
 
 /*
 Faire en sorte de créer des cas de tests pour le code C à partir du code Haskell
+
+
+-fonction copie de word 
+-Faire fonction copie de state
 
 */
 
