@@ -9,6 +9,72 @@ typedef unsigned char byte;
 typedef byte word[4];
 typedef byte state[4][4]; // ou un tableau de 4 word : typedef word state[4]
 
+word Rcon[99]; // The round constant word array
+
+static const byte sbox[256];
+
+void SubWord(word w){ //substitue la valeur de l'octet à partir de sa valeur et la Sbox
+    for(int i=0;i<3;i++){
+        w[i]=sbox[w[i]];
+    }
+}
+
+void RotWord(word w){ //Prend un word [a,b,c,d]-> fait [b,c,d,a]
+    byte temp;
+    temp=w[0];
+    w[0]=w[1];w[1]=w[2];w[2]=w[3];w[3]=w[0];
+}
+
+//--------Fonction auxiliaire
+void xor_word(byte a[4], byte b[4],byte dst[4]){ //modifie dst, fait le xor octet par octet pour des word
+    for (int i=0;i<4;i++){
+        dst[i]= a[i] ^ b[i];
+    }
+}
+
+void KeyExpansion(byte key[], word w[], int key_length){ // Nr en paramètre de ça -> à déduire?
+    int Nk=key_length,Nb=4; 
+    int Nr=0;// achanger
+    word temp;
+    int i=0;
+    while (i< Nk){
+        for (int u=0;u<4;u++){ // modification de w[i]
+            w[i][u] = key[4*i+u];
+        }
+        i++;
+    }
+    i=Nk;
+    while (i<Nb*(Nr+1)){
+        for (int u=0;u<4;u++){ // modification de temp par w[i-1]
+            temp[u] = w[i-1][u];
+        }
+        if(i%Nk==0) {
+            RotWord(temp);SubWord(temp);
+            xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
+        }
+        else if(Nk>6 && i%Nk==4) SubWord(temp);
+        xor_word(w[i-Nk],temp,w[i]);
+        //w[i] = w[i-Nk] ^ temp;
+        i++;
+    }
+}
+
+void ShiftRows(state s){
+    for (int i=1;i<4;i++){
+        for(int j=0;j<i+1;j++) RotWord(s[i]);
+    }
+}
+
+void AddRoundKey(state s, word round_key[4]){
+    //Ne doit absolument pas marcher mais compile
+    //int round=,Nb=4,l=round*4;
+    for (int i=0;i<4;i++){
+        for(int c=0;c<4;c++){
+            s[i][c] ^= round_key[i][c];
+        }
+    }
+}
+
 static const byte sbox[256] = {
     0x63,
     0x7c,
@@ -268,75 +334,12 @@ static const byte sbox[256] = {
     0x16
 };
 
-
-word Rcon[99]; // The round constant word array
-
-
-
-void SubWord(word w){
-    for(int i=0;i<3;i++){
-        w[i]=sbox[w[i]];
-}
-}
-
-void RotWord(word w){ //Prend un word [a,b,c,d]-> fait [b,c,d,a]
-    byte temp;
-    temp=w[0];
-    w[0]=w[1];w[1]=w[2];w[2]=w[3];w[3]=w[0];
-}
-
-void KeyExpansion(byte key[], word w[], int key_length){ // Nr en paramètre de ça -> à déduire?
-    int Nk=key_length,Nb=4; 
-    int Nr=0;// achanger
-    word temp;
-    int i=0;
-    while (i< Nk){
-        for (int u=0;u<4;u++){ // modification de w[i]
-            w[i][u] = key[4*i+u];
-        }
-        i++;
-    }
-    i=Nk;
-    while (i<Nb*(Nr+1)){
-        for (int u=0;u<4;u++){ // modification de temp par w[i-1]
-            temp[u] = w[i-1][u];
-        }
-        if(i%Nk==0) {
-            RotWord(temp);SubWord(temp);
-            xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
-        }
-        else if(Nk>6 && i%Nk==4) SubWord(temp);
-        xor_word(w[i-Nk],temp,w[i]);
-        //w[i] = w[i-Nk] ^ temp;
-        i++;
-
-
-
-
-void ShiftRows(state s){
-    for (int i=1;i<4;i++){
-        for(int j=0;j<i+1;j++) RotWord(s[i]);
- }
-}
-
-
-void AddRoundKey(state s, word round_key[4]){
-    //Ne doit absolument pas marcher mais compile
-    //int round=,Nb=4,l=round*4;
-    for (int i=0;i<4;i++){
-        for(int c=0;c<4;c++){
-            s[i][c] ^= round_key[i][c];
-        }
-    }
-}
-
-
 void SubBytes(state s) {
-    for (int i=0;i<4;i++){
-        for (int j=0;j<4;j++){
-            s[i][j]= sbox[s[i][j]]
-}
-}
+    for (int i=0;i<4;i++) {
+        for (int j=0;j<4;j++) {
+            s[i][j]= sbox[s[i][j]];
+        }
+    }
 } 
 
 
@@ -367,15 +370,17 @@ void MixColumns(state s) {
 
 
 void InvSubBytes(state s) {
-    for (int i=0;i<4;i++) {
-        for (int j=0;j<4;j++) {
-            byte octet=s[i][j];
-            for (int k=0;k<256;k++) {
-                if (sbox[k] == octet) {s[i][j] = (byte)k; break; }
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            byte current = s[i][j];
+            for (int k = 0; k < 256; k++) {
+                if (sbox[k] == current) {s[i][j] = (byte)k; break; }
             }
         }
     }
 }
+
+
 
 void InvShiftRows(state s) {
     for (int i=1;i<4;i++) {
