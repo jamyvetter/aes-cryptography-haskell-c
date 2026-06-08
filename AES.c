@@ -285,28 +285,30 @@ void RotWord(word w){ //Prend un word [a,b,c,d]-> fait [b,c,d,a]
     w[0]=w[1];w[1]=w[2];w[2]=w[3];w[3]=w[0];
 }
 
-void KeyExpansion(byte key[], word w[], int key_length){ // Nr en paramètre de ça ? -> à déduire?
+void KeyExpansion(byte key[], word w[], int key_length){ // Nr en paramètre de ça -> à déduire?
     int Nk=key_length,Nb=4; 
-    int Nr=0;// à changer
+    int Nr=0;// achanger
     word temp;
     int i=0;
     while (i< Nk){
-        w[i]= {key[4*i],key[4*i+1],key[4*i+2],key[4*i+3]};
+        for (int u=0;u<4;u++){ // modification de w[i]
+            w[i][u] = key[4*i+u];
+        }
         i++;
     }
     i=Nk;
     while (i<Nb*(Nr+1)){
-        temp= w[i-1];
+        for (int u=0;u<4;u++){ // modification de temp par w[i-1]
+            temp[u] = w[i-1][u];
+        }
         if(i%Nk==0) {
-            RotWord(temp);SubWord(temp);temp^= Rcon[i/Nk];
+            RotWord(temp);SubWord(temp);
+            xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
         }
         else if(Nk>6 && i%Nk==4) SubWord(temp);
-        w[i] = w[i-Nk] ^ temp;
+        xor_word(w[i-Nk],temp,w[i]);
+        //w[i] = w[i-Nk] ^ temp;
         i++;
-}
-}
-
-
 
 
 
@@ -318,6 +320,16 @@ void ShiftRows(state s){
 }
 
 
+void AddRoundKey(state s, word round_key[4]){
+    //Ne doit absolument pas marcher mais compile
+    //int round=,Nb=4,l=round*4;
+    for (int i=0;i<4;i++){
+        for(int c=0;c<4;c++){
+            s[i][c] ^= round_key[i][c];
+        }
+    }
+}
+
 
 void SubBytes(state s) {
     for (int i=0;i<4;i++){
@@ -326,7 +338,6 @@ void SubBytes(state s) {
 }
 }
 } 
-
 
 
 #define mul2(x) (byte)(((x) << 1) ^ (((x) & 0x80) ? 0x1b : 0x00)) // ici mul2 est la mulplication l'octet (polynome) par x, donc on décale d'un cran vers la gauche (x << 1), si le bit de poids fort est à 1, on applique un XOR avec le polynome irreductible Ox11b
@@ -345,7 +356,6 @@ void MixColumns(state s) {
         byte s1=s[1][c];
         byte s2 = s[2][c];
         byte s3 = s[3][c];
-
         s[0][c] = mul2(s0) ^ mul3(s1) ^ s2 ^ s3;
         s[1][c] = s0 ^ mul2(s1) ^ mul3(s2) ^ s3;
         s[2][c] = s0 ^ s1 ^ mul2(s2) ^ mul3(s3);
@@ -353,16 +363,6 @@ void MixColumns(state s) {
     }
 }
 
-
-
-
-void AddRoundKey(state s, word round_key[4]){
-    for(int i=0;i<4;i++){
-        for(int c=0;c<4;c++){
-            s[i][c]^= round_key[i][c];
-        }
-    }
-}
 
 
 
@@ -409,7 +409,29 @@ Faire en sorte de créer des cas de tests pour le code C à partir du code Haske
 
 */
 
+
+void test_subBytes(){
+}
+
+
+void test_shiftRows(){
+}
+
+
+void test_invSubBytes(){
+}
+
+
+void test_invShiftRows(){
+}
+
+
+
 int main(){
+
+
+
+
 
     return 0;
 }
