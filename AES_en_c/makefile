@@ -1,13 +1,15 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
 
-TARGET = test_aes
-OBJS = AES.o test_aes.o
+TARGETS = test_aes test_ecb
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+test_aes: AES.o test_aes.o ECB.o
+	$(CC) $(CFLAGS) -o test_aes AES.o test_aes.o ECB.o
+
+test_ecb: AES.o test_ecb.o ECB.o
+	$(CC) $(CFLAGS) -o test_ecb AES.o test_ecb.o ECB.o
 
 AES.o: AES.c AES.h
 	$(CC) $(CFLAGS) -c AES.c
@@ -15,5 +17,11 @@ AES.o: AES.c AES.h
 test_aes.o: test_aes.c AES.h
 	$(CC) $(CFLAGS) -c test_aes.c
 
+test_ecb.o: test_ecb.c AES.h
+	$(CC) $(CFLAGS) -c test_ecb.c
+
+ECB.o: ECB.c AES.h
+	$(CC) $(CFLAGS) -c ECB.c
+
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f *.o $(TARGETS)
