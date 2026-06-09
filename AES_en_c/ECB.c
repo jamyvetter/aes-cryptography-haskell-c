@@ -5,7 +5,7 @@
 
 // unsigned char* src => tableau du message en clair complet
 // int src_data_length => taille du message en clair
-// word key[] => la clé etendue (w)
+// word key[] => la clé de codage
 // int key_length => taille de la clé (Nk: 4, 6, ou 8)
 // unsigned char** dst => adresse d'un pointeur
 // int *dst_data_length => pointeur vers un entier qui représente la taille du resultat (multiple de 16)
@@ -74,6 +74,6 @@ int aes_ecb_decrypt(unsigned char** dst, int *dst_data_length, unsigned char* sr
             return -1;
     }
     }
-    *dst_data_length = src_data_length - padding_len; //vrai taillesans le padding
+    *dst_data_length = src_data_length - padding_len; //vrai taille sans le padding
     return 0;
 }
