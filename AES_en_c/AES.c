@@ -251,7 +251,32 @@ void aes_decrypt(state dst, state src, word key[], int key_length){
     InvCipher(dst,src,expanded_key,key_length); // Dechiffrement en utilisant la clef étendue
 
 }
-
+void InvMixColumns_eq(word s[NB]) {
+    //Comme l'entrée est 'inversée' , le rôle de mixColumns est inversée aussi, on échange juste lignes et colonnes
+    for (int c = 0; c < NB; c++) {
+        byte s0 = s[c][0], s1 = s[c][1], s2 = s[c][2], s3 = s[c][3];
+        
+        s[c][0] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ xtime(s0)) ^ 
+                  (xtime(xtime(xtime(s1))) ^ xtime(s1) ^ s1) ^ 
+                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ s2) ^ 
+                  (xtime(xtime(xtime(s3))) ^ s3); 
+                  
+        s[c][1] = (xtime(xtime(xtime(s0))) ^ s0) ^ 
+                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ xtime(s1)) ^ 
+                  (xtime(xtime(xtime(s2))) ^ xtime(s2) ^ s2) ^ 
+                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ s3); 
+                  
+        s[c][2] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ s0) ^ 
+                  (xtime(xtime(xtime(s1))) ^ s1) ^ 
+                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ xtime(s2)) ^ 
+                  (xtime(xtime(xtime(s3))) ^ xtime(s3) ^ s3); 
+                  
+        s[c][3] = (xtime(xtime(xtime(s0))) ^ xtime(s0) ^ s0) ^ 
+                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ s1) ^ 
+                  (xtime(xtime(xtime(s2))) ^ s2) ^ 
+                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ xtime(s3)); 
+    }
+}
 //Cette version génère la clef de base et celle utilisée pour l'eqCipherInv(dw)
 void EqKeyExpansion(byte key[], word w[],word dw[],int key_length){
     int Nk=key_length,Nr=val_nr(Nk);
@@ -280,7 +305,8 @@ void EqKeyExpansion(byte key[], word w[],word dw[],int key_length){
         copie_word(w[i],dw[i]);//dw[i]=w[i];
     }
     for(int round=1;round<Nr;round++){
-        InvMixColumns(&dw[round*NB]);//transtypage ici
+        InvMixColumns_eq(&dw[round*NB]);//transtypage ici -> Erreur ici, il faut gérer le fait que les lignes et colonnes sont inversées
+        // Car InvMixcolumns s'applique sur un State et pas un tableau de 16 octets
     }
 }
 void EqInvCipher(state dst, state src, word dw[], int key_length){
@@ -294,7 +320,7 @@ void EqInvCipher(state dst, state src, word dw[], int key_length){
         AddRoundKey(dst,&dw[round*NB]); 
     }
     InvSubBytes(dst);InvShiftRows(dst);
-    AddRoundKey(dst,&dw[0]);    
+    AddRoundKey(dst,&dw[0]);
 }
 
 //Cette version utilise l'alogirthme équivalent Cipher.
@@ -304,8 +330,7 @@ void aes_decrypt2(state dst, state src, word key[], int key_length){
 
     word dw[NB*(Nr+1)]; word expanded_key[NB*(Nr+1)];
     EqKeyExpansion(key,expanded_key,dw,key_length); //Chiffrement de la clef (KeyExpansion)
-    EqInvCipher(dst,src,dw,key_length); // Dechiffrement en utilisant la clef étendue
-     
+    EqInvCipher(dst,src,dw,key_length); // Dechiffrement en utilisant la clef étendue  
 }
 
 

@@ -249,10 +249,31 @@ void test_cipher() {
     };
 
     state ciphertext;
-    aes_encrypt(ciphertext, plaintext, w, 4);
+    Cipher(ciphertext, plaintext, w, 4);
 
-    test_fonction("aes_encrypt (Cipher)", compare_state(ciphertext, expected_ciphertext));
+    test_fonction("Cipher", compare_state(ciphertext, expected_ciphertext));
 }
+
+void test_Chiffrement(){
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+    state plaintext = {
+        {0x00, 0x44, 0x88, 0xcc},
+        {0x11, 0x55, 0x99, 0xdd},
+        {0x22, 0x66, 0xaa, 0xee},
+        {0x33, 0x77, 0xbb, 0xff}
+    };
+
+    state expected_ciphertext = {
+        {0x69, 0x6a, 0xd8, 0x70},
+        {0xc4, 0x7b, 0xcd, 0xb4},
+        {0xe0, 0x04, 0xb7, 0xc5},
+        {0xd8, 0x30, 0x80, 0x5a}
+    };
+    state ciphertext;aes_encrypt(ciphertext, plaintext, key, 4);
+    test_fonction("Chiffrement (clef+cipher)", compare_state(ciphertext, expected_ciphertext));
+}
+
 
 void test_invCipher() {
     byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -275,9 +296,111 @@ void test_invCipher() {
     };
 
     state plaintext;
-    aes_decrypt(plaintext, ciphertext, w, 4);
+    InvCipher(plaintext, ciphertext, w, 4);
 
-    test_fonction("aes_decrypt (InvCipher)", compare_state(plaintext, expected_plaintext));
+    test_fonction("InvCipher", compare_state(plaintext, expected_plaintext));
+}
+
+void test_EqKeyExpansion(){
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+    
+                    
+    word w[44];word dw[44];
+    EqKeyExpansion(key, w,dw, 4); //nk = 4
+
+    word expected_last_round_key[4] = { // round[10] .k_sch
+        {0x13, 0x11, 0x1d, 0x7f},
+        {0xe3, 0x94, 0x4a, 0x17},
+        {0xf3, 0x07, 0xa7, 0x8b},
+        {0x4d, 0x2b, 0x30, 0xc5}
+    };
+
+    int success = 1;
+    for (int i = 0; i < 4; i++) {
+        if (memcmp(w[40 + i], expected_last_round_key[i], 4) != 0) {
+            success = 0;
+            break;
+        }
+    }
+    test_fonction("EqKeyExpansion(128-bit), non alteration de keyExpansion", success); // on vérifie que la boucle ajoutée n'a aucun impact sur w
+    //printf("%s \n", dw);printf("%s \n", w);
+
+}
+
+
+void test_EqInvCipher() {
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+    word w[44];word dw[44];
+    EqKeyExpansion(key, w,dw,4);
+
+    state ciphertext = {
+        {0x69, 0x6a, 0xd8, 0x70},
+        {0xc4, 0x7b, 0xcd, 0xb4},
+        {0xe0, 0x04, 0xb7, 0xc5},
+        {0xd8, 0x30, 0x80, 0x5a}
+    };
+
+    state expected_plaintext = {
+        {0x00, 0x44, 0x88, 0xcc},
+        {0x11, 0x55, 0x99, 0xdd},
+        {0x22, 0x66, 0xaa, 0xee},
+        {0x33, 0x77, 0xbb, 0xff}
+    };
+
+    state plaintext;
+    EqInvCipher(plaintext, ciphertext, dw, 4);
+
+    test_fonction("EqInvCipher", compare_state(plaintext, expected_plaintext));
+}
+
+void test_dechiffrement() {
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+
+    state ciphertext = {
+        {0x69, 0x6a, 0xd8, 0x70},
+        {0xc4, 0x7b, 0xcd, 0xb4},
+        {0xe0, 0x04, 0xb7, 0xc5},
+        {0xd8, 0x30, 0x80, 0x5a}
+    };
+
+    state expected_plaintext = {
+        {0x00, 0x44, 0x88, 0xcc},
+        {0x11, 0x55, 0x99, 0xdd},
+        {0x22, 0x66, 0xaa, 0xee},
+        {0x33, 0x77, 0xbb, 0xff}
+    };
+
+    state plaintext;
+    aes_decrypt(plaintext, ciphertext, key, 4);
+
+    test_fonction("Dechiffrement basique", compare_state(plaintext, expected_plaintext));
+}
+
+void test_dechiffrement_eq() {
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+
+    state ciphertext = {
+        {0x69, 0x6a, 0xd8, 0x70},
+        {0xc4, 0x7b, 0xcd, 0xb4},
+        {0xe0, 0x04, 0xb7, 0xc5},
+        {0xd8, 0x30, 0x80, 0x5a}
+    };
+
+    state expected_plaintext = {
+        {0x00, 0x44, 0x88, 0xcc},
+        {0x11, 0x55, 0x99, 0xdd},
+        {0x22, 0x66, 0xaa, 0xee},
+        {0x33, 0x77, 0xbb, 0xff}
+    };
+
+    state plaintext;
+    aes_decrypt2(plaintext, ciphertext, key, 4);
+
+    test_fonction("Dechiffrement avec algorithme EqInv", compare_state(plaintext, expected_plaintext));
 }
 
 void test_keyExpansion_random_128() {
@@ -325,6 +448,9 @@ void test_keyExpansion_random_256() {
     test_fonction("KeyExpansion Random (256-bit)", success);
 }
 
+
+
+
 int main(){
     printf("=== Lancement des tests AES ===\n");
     test_RotWord();
@@ -335,6 +461,7 @@ int main(){
     test_mixColumns();
     test_invMixColumns();
     test_addRoundKey();
+    test_EqKeyExpansion();
     test_keyExpansion();
     test_keyExpansion_192();
     test_keyExpansion_256();
@@ -343,6 +470,10 @@ int main(){
     test_keyExpansion_random_256();
     test_cipher();
     test_invCipher();
+    test_EqInvCipher();
+    test_Chiffrement();
+    test_dechiffrement();
+    test_dechiffrement_eq();
     printf("============================\n");
     return 0;
 }
