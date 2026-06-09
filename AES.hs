@@ -362,3 +362,33 @@ fff state w round nb = invMixColumns (addRoundKey ((invSubBytes . invShiftRows) 
 -- Entrées: (state,w,nb) Sortie: state
 hors_boucle_inv_cipher :: State -> [GF28X] -> Int -> State
 hors_boucle_inv_cipher state w nb = addRoundKey (invSubBytes (invShiftRows state)) (intervale_4 0 w)
+
+-- Ajout du préfixe '0x' pour l'affichage 
+gF28_vers_C :: GF28 -> String
+gF28_vers_C gf = "0x" ++ gf28ToHex gf
+
+--Pour séparer d'une virgule et faire la fusion en une seule chaine de caractère.
+separation_virgule::[String]->String
+separation_virgule []= ""
+separation_virgule [x] = x
+separation_virgule (x:xs) =x ++", "++ separation_virgule xs
+
+-- Affichage sous forme de tableau en code C (ex: "{0x03,0x16,...}") -> Pour une clef
+export_key :: [GF28] -> String
+export_key cle = "{" ++ separation_virgule (map gF28_vers_C cle) ++ "}"
+
+--Extrait la i-eme ligne de la matrice State: En récupérant le i-eme element de chaque colonne
+extraire_ligne :: Int ->State-> [GF28]
+extraire_ligne i = map (\(GF28X (Polynome col)) -> col !! i)
+
+-- Affichage sous forme de tableau double en code C -> Pour un state 
+pexport_state :: State -> String
+pexport_state state = "{" ++ separation_virgule lignes_tableaux ++ "}"
+  where
+    lignes_tableaux= map (\i -> export_key (extraire_ligne i state)) [0, 1, 2, 3] -- Extrait chaque ligne, la convertit en string sous format "{...}", renvoie la liste des lignes dans un tableau
+
+-- Comme notre Cipher renvoie une liste d'octets, il faut d'abord reconvertir en State. Cette fonction affiche les résultats de tests_chiffrement
+export_state:: [GF28] -> String
+export_state liste_octets = pexport_state (octets_vers_state liste_octets)
+
+

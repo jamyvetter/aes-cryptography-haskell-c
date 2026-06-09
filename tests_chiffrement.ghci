@@ -107,6 +107,15 @@ test_rt_C3 = dechiffrement_key_C3 == input_C3
 
 
 
+----------- Tests de l'affichage des résultats en C -----------
+gF28_vers_C zero =="0x00"
+gF28_vers_C un =="0x01"
+separation_virgule ["abc","def"] =="abc, def"
+export_key key_A1 == "{0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c}"
+extraire_ligne 0 (octets_vers_state output_state_B ) --Attendu: [GF28 [1,0,0,1,1,1,0,0],GF28 [0,1,0,0,0,0,0,0],GF28 [0,0,1,1,1,0,1,1],GF28 [1,0,0,1,1,0,0,0]]
+extraire_ligne 3 (octets_vers_state output_state_B ) --Attendu:  [GF28 [1,0,1,1,1,0,0,0],GF28 [1,1,0,1,1,1,1,1],GF28 [1,1,1,0,1,0,0,1],GF28 [0,1,0,0,1,1,0,0]]
+export_state output_state_B == "{{0x39, 0x02, 0xdc, 0x19}, {0x25, 0xdc, 0x11, 0x6a}, {0x84, 0x09, 0x85, 0x0b}, {0x1d, 0xfb, 0x97, 0x32}}"
+
 ----------- Synthèse des tests -----------
 
 :{
