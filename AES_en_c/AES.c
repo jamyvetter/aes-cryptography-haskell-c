@@ -6,8 +6,6 @@
 // The round constant word array Rcon[i] contains the values given by [x^(i-1), {00}, {00}, {00}]
 // Les indices vont de 1 à 14 (maximum pour AES-256). L'indice 0 n'est pas utilisé.
 const word Rcon[15] = {
-};
-    /*
     {0x00, 0x00, 0x00, 0x00}, // Rcon[0] (inutilisé)
     {0x01, 0x00, 0x00, 0x00}, // Rcon[1]
     {0x02, 0x00, 0x00, 0x00}, // Rcon[2]
@@ -24,7 +22,7 @@ const word Rcon[15] = {
     {0xab, 0x00, 0x00, 0x00}, // Rcon[13]
     {0x4d, 0x00, 0x00, 0x00}  // Rcon[14] (AES-256 s'arrête ici)
 };
-*/
+
 
 static const byte sbox[256] = {
     0x63,0x7c,0x77, 0x7b,0xf2, 0x6b, 0x6f, 0xc5,0x30, 0x01,  0x67,0x2b, 0xfe,0xd7,0xab,0x76,0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,
@@ -236,7 +234,7 @@ void aes_decrypt(state dst, state src, word key[], int key_length){
     }
     InvShiftRows(dst);
     InvSubBytes(dst);
-    AddRoundKey(dst,&temp[0]);    
+    AddRoundKey(dst,&key[0]);    
 }
 //faire mieux: la version eqinvcipher est plus rapide potentiellement. //
 
