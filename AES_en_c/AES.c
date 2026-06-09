@@ -297,8 +297,7 @@ void EqInvCipher(state dst, state src, word dw[], int key_length){
     AddRoundKey(dst,&dw[0]);    
 }
 
-//faire mieux: la version eqinvcipher est plus rapide potentiellement. //
-// Important: cette version fonctionne si la clef est celle avec l'algorithme modifié de KeyExpansion
+//Cette version utilise l'alogirthme équivalent Cipher.
 void aes_decrypt2(state dst, state src, word key[], int key_length){
     int Nr=val_nr(key_length);
     if (Nr==99) exit(EXIT_FAILURE);
@@ -308,8 +307,6 @@ void aes_decrypt2(state dst, state src, word key[], int key_length){
     EqInvCipher(dst,src,dw,key_length); // Dechiffrement en utilisant la clef étendue
      
 }
-
-
 
 
 //Fonction auxiliaire

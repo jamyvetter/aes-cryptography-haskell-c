@@ -152,15 +152,15 @@ void test_RotWord(){
     test_fonction( "RotWord",(memcmp(in,expected,4)==0) && (memcmp(in2,expected2,4)==0) );
 }
 
-void test_keyExpansion() {
-    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
+void test_keyExpansion() { //Annexe C.1
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
     
                     
     word w[44];
-    KeyExpansion(key, w, 4);
+    KeyExpansion(key, w, 4); //nk = 4
 
-    word expected_last_round_key[4] = {
+    word expected_last_round_key[4] = { // round[10] .k_sch
         {0x13, 0x11, 0x1d, 0x7f},
         {0xe3, 0x94, 0x4a, 0x17},
         {0xf3, 0x07, 0xa7, 0x8b},
@@ -174,11 +174,62 @@ void test_keyExpansion() {
             break;
         }
     }
-    test_fonction("KeyExpansion", success);
+    test_fonction("KeyExpansion(128-bit)", success);
+}
+
+void test_keyExpansion_192() { //Annexe C.2
+    byte key[24] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+                    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
+    
+    word w[52];
+    KeyExpansion(key, w, 6); //nk = 6
+
+    word expected_last_round_key[4] = { // round[12] .k_sch
+        {0xa4, 0x97, 0x0a, 0x33},
+        {0x1a, 0x78, 0xdc, 0x09},
+        {0xc4, 0x18, 0xc2, 0x71},
+        {0xe3, 0xa4, 0x1d, 0x5d}
+    };
+
+    int success = 1;
+    for (int i = 0; i < 4; i++) {
+        if (memcmp(w[48 + i], expected_last_round_key[i], 4) != 0) {
+            success = 0;
+            break;
+        }
+    }
+    test_fonction("KeyExpansion (192-bit)", success);
+}
+
+void test_keyExpansion_256() { //Annexe C.3
+    byte key[32] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+                    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+                    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
+                    
+    word w[60];
+    KeyExpansion(key, w, 8); //nk = 8
+
+    word expected_last_round_key[4] = { // round[14] .k_sch
+        {0x24, 0xfc, 0x79, 0xcc},
+        {0xbf, 0x09, 0x79, 0xe9},
+        {0x37, 0x1a, 0xc2, 0x3c},
+        {0x6d, 0x68, 0xde, 0x36}
+    };
+
+    int success = 1;
+    for (int i = 0; i < 4; i++) {
+        if (memcmp(w[56 + i], expected_last_round_key[i], 4) != 0) {
+            success = 0;
+            break;
+        }
+    }
+    test_fonction("KeyExpansion (256-bit)", success);
 }
 
 void test_cipher() {
-    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
     word w[44];
     KeyExpansion(key, w, 4);
@@ -198,13 +249,13 @@ void test_cipher() {
     };
 
     state ciphertext;
-    Cipher(ciphertext, plaintext, w, 4);
+    aes_encrypt(ciphertext, plaintext, w, 4);
 
     test_fonction("aes_encrypt (Cipher)", compare_state(ciphertext, expected_ciphertext));
 }
 
 void test_invCipher() {
-    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
+    byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
     word w[44];
     KeyExpansion(key, w, 4);
@@ -229,6 +280,51 @@ void test_invCipher() {
     test_fonction("aes_decrypt (InvCipher)", compare_state(plaintext, expected_plaintext));
 }
 
+void test_keyExpansion_random_128() {
+    byte key[16] = {0x5a, 0x11, 0x82, 0x3b, 0xa4, 0x90, 0x1f, 0xc2, 0xe8, 0xd4, 0x76, 0x99, 0xbb, 0xaa, 0xcc, 0x33}; // clé aléatoire de 16 octets
+    word w[44];
+    KeyExpansion(key, w, 4);
+    word expected[4] = {
+        {0x0e, 0x13, 0xeb, 0xc9},
+        {0xdf, 0x58, 0x7a, 0xcf},
+        {0xd2, 0x0e, 0xd4, 0xf3},
+        {0x43, 0x13, 0x7d, 0x01}
+    };
+    int success = 1;
+    for(int i=0; i<4; i++) if (memcmp(w[40+i], expected[i], 4) != 0) success = 0;
+    test_fonction("KeyExpansion Random (128-bit)", success);
+}
+
+void test_keyExpansion_random_192() {
+    byte key[24] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00}; // clé aléatoire de 24 octets
+    word w[52];
+    KeyExpansion(key, w, 6);
+    word expected[4] = {
+        {0x31, 0x64, 0xb0, 0x18},
+        {0x8f, 0x6d, 0x42, 0x09},
+        {0x10, 0x28, 0xb0, 0x48},
+        {0x8c, 0xed, 0x70, 0x34}
+    };
+    int success = 1;
+    for(int i=0; i<4; i++) if (memcmp(w[48+i], expected[i], 4) != 0) success = 0;
+    test_fonction("KeyExpansion Random (192-bit)", success);
+}
+
+void test_keyExpansion_random_256() {
+    byte key[32] = {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99}; //clé aléatoire de 32 octets
+    word w[60];
+    KeyExpansion(key, w, 8);
+    word expected[4] = {
+        {0x53, 0x61, 0x3f, 0xab},
+        {0xd6, 0x15, 0x0d, 0x30},
+        {0x81, 0xaf, 0x67, 0xf0},
+        {0xca, 0xee, 0x4d, 0x56}
+    };
+    int success = 1;
+    for(int i=0; i<4; i++) if (memcmp(w[56+i], expected[i], 4) != 0) success = 0;
+    test_fonction("KeyExpansion Random (256-bit)", success);
+}
+
 int main(){
     printf("=== Lancement des tests AES ===\n");
     test_RotWord();
@@ -240,6 +336,11 @@ int main(){
     test_invMixColumns();
     test_addRoundKey();
     test_keyExpansion();
+    test_keyExpansion_192();
+    test_keyExpansion_256();
+    test_keyExpansion_random_128();
+    test_keyExpansion_random_192();
+    test_keyExpansion_random_256();
     test_cipher();
     test_invCipher();
     printf("============================\n");
