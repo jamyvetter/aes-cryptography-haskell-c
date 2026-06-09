@@ -24,6 +24,14 @@ void AddRoundKey(state s, word round_key[NB]);
 void InvSubBytes(state s);
 void InvShiftRows(state s);
 void InvMixColumns(state s);
+
+
+void EqKeyExpansion(byte key[], word w[],word dw[],int key_length);
+void Cipher(state dst, state src, word key[], int key_length);
+void InvCipher(state dst, state src, word w[], int Nk);
+void EqInvCipher(state dst, state src, word dw[], int key_length);
+void aes_decrypt2(state dst, state src, word key[], int key_length);
+
 void aes_encrypt(state dst, state src, word key[], int key_length);
 void aes_decrypt(state dst, state src, word key[], int key_length);
 

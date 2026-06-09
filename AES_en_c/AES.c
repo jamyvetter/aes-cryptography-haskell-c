@@ -78,7 +78,7 @@ void xor_word(byte a[4], byte b[4],byte dst[4]){ //modifie dst, fait le xor octe
 }
 
 void KeyExpansion(byte key[], word w[],int key_length){
-    int Nk=key_length,Nb=4; 
+    int Nk=key_length;
     word temp;
     int i=0;
     while (i< Nk){
@@ -88,7 +88,7 @@ void KeyExpansion(byte key[], word w[],int key_length){
         i++;
     }
     i=Nk;
-    while (i<Nb*(val_nr(Nk)+1)){
+    while (i<NB*(val_nr(Nk)+1)){
         for (int u=0;u<4;u++){ // modification de temp par w[i-1]
             temp[u] = w[i-1][u];
         }
@@ -155,15 +155,15 @@ void InvSubBytes(state s) {
 
 
 void InvShiftRows(state s){
-    for (int i=1;i<4;i++){
-        for (int j=0;j<4-i;j++){
+    for (int i=1;i<NB;i++){
+        for (int j=0;j<NB-i;j++){
             RotWord(s[i]);
 }
 }
 }
 
 void InvMixColumns(state s) {
-    for (int c=0;c<4; c++) {
+    for (int c=0;c<NB; c++) {
         byte s0=s[0][c], s1=s[1][c], s2=s[2][c], s3=s[3][c];
         
         // 14=0x0E (x^3+x^2+x), 11=0x0B (x^3+x+1), 13=0x0D (x^3+x^2+1), 9=0x09 (x^3+1)
@@ -203,11 +203,9 @@ void copie_state(state src, state dst){
     memcpy(dst,src,16);
 }
 
-//Cipher
-void aes_encrypt(state dst, state src, word key[], int key_length){
+//Cipher, chiffre le message à partir de la clef étendue
+void Cipher(state dst, state src, word key[], int key_length){
     int Nr=val_nr(key_length);
-    if (Nr==99) exit(EXIT_FAILURE);
-
     copie_state(src,dst);//copie de src dans dst, puis on modifie dst
     AddRoundKey(dst, key);
     for (int round=1;round<Nr;round++){
@@ -216,37 +214,108 @@ void aes_encrypt(state dst, state src, word key[], int key_length){
     }
     SubBytes(dst);ShiftRows(dst);
     AddRoundKey(dst, &key[Nr*NB]);
-
 }
 
-//InvCipher
-void aes_decrypt(state dst, state src, word key[], int key_length){
-// key_length permet toujours de déduire Nk et Nr. Si key_length est incorrect, il faut appeler exit()
-    state temp; int Nr=val_nr(key_length);
+
+void aes_encrypt(state dst, state src, word key[], int key_length){
+    int Nr=val_nr(key_length);
     if (Nr==99) exit(EXIT_FAILURE);
+
+    word expanded_key[NB*(Nr+1)];
+    KeyExpansion(key,expanded_key,key_length); //Chiffrement de la clef (KeyExpansion)
+    Cipher(dst,src,expanded_key,key_length); //Encodage avec la clef chiffrée
+}
+
+void InvCipher(state dst, state src, word w[], int Nk){
+// key_length permet toujours de déduire Nk et Nr. Si key_length est incorrect, il faut appeler exit()
+    int Nr=val_nr(Nk);
     copie_state(src,dst);//copie de src dans dst, puis on modifie dst
-    AddRoundKey(dst,&key[Nr*NB]);
+    AddRoundKey(dst,&w[Nr*NB]);
     for(int round=Nr-1;round>0;round--){ 
         InvShiftRows(dst);
         InvSubBytes(dst);
-        AddRoundKey(dst,&key[round*4]);        
+        AddRoundKey(dst,&w[round*NB]);        
         InvMixColumns(dst);
     }
     InvShiftRows(dst);
     InvSubBytes(dst);
-    AddRoundKey(dst,&key[0]);    
+    AddRoundKey(dst,&w[0]);    
 }
+
+void aes_decrypt(state dst, state src, word key[], int key_length){
+    int Nr=val_nr(key_length);
+    if (Nr==99) exit(EXIT_FAILURE);
+
+    word expanded_key[NB*(Nr+1)];
+    KeyExpansion(key,expanded_key,key_length); //Chiffrement de la clef (KeyExpansion)
+    InvCipher(dst,src,expanded_key,key_length); // Dechiffrement en utilisant la clef étendue
+
+}
+
+//Cette version génère la clef de base et celle utilisée pour l'eqCipherInv(dw)
+void EqKeyExpansion(byte key[], word w[],word dw[],int key_length){
+    int Nk=key_length,Nr=val_nr(Nk);
+    word temp;
+    int i=0;
+    while (i< Nk){
+        for (int u=0;u<4;u++){ // modification de w[i]
+            w[i][u] = key[4*i+u];
+        }
+        i++;
+    }
+    i=Nk;
+    while (i<NB*(val_nr(Nk)+1)){
+        for (int u=0;u<4;u++){ // modification de temp par w[i-1]
+            temp[u] = w[i-1][u];
+        }
+        if(i%Nk==0) {
+            RotWord(temp);SubWord(temp);
+            xor_word(temp,Rcon[i/Nk],temp);//temp^= Rcon[i/Nk];
+        }
+        else if(Nk>6 && i%Nk==4) SubWord(temp);
+        xor_word(w[i-Nk],temp,w[i]); //w[i] = w[i-Nk] ^ temp;
+        i++;
+    }
+    for(int i=0;i<(Nr+1)*NB;i++){
+        copie_word(w[i],dw[i]);//dw[i]=w[i];
+    }
+    for(int round=1;round<Nr;round++){
+        InvMixColumns(&dw[round*NB]);//transtypage ici
+    }
+}
+void EqInvCipher(state dst, state src, word dw[], int key_length){
+    int Nr=val_nr(key_length);
+    copie_state(src,dst);//copie de src dans dst, puis on modifie dst
+    AddRoundKey(dst,&dw[Nr*NB]);
+    for(int round=Nr-1;round>0;round--){ 
+        InvSubBytes(dst);
+        InvShiftRows(dst);       
+        InvMixColumns(dst);
+        AddRoundKey(dst,&dw[round*NB]); 
+    }
+    InvSubBytes(dst);InvShiftRows(dst);
+    AddRoundKey(dst,&dw[0]);    
+}
+
 //faire mieux: la version eqinvcipher est plus rapide potentiellement. //
+// Important: cette version fonctionne si la clef est celle avec l'algorithme modifié de KeyExpansion
+void aes_decrypt2(state dst, state src, word key[], int key_length){
+    int Nr=val_nr(key_length);
+    if (Nr==99) exit(EXIT_FAILURE);
+
+    word dw[NB*(Nr+1)]; word expanded_key[NB*(Nr+1)];
+    EqKeyExpansion(key,expanded_key,dw,key_length); //Chiffrement de la clef (KeyExpansion)
+    EqInvCipher(dst,src,dw,key_length); // Dechiffrement en utilisant la clef étendue
+     
+}
 
 
-/*
-Faire en sorte de créer des cas de tests pour le code C à partir du code Haskell
-*/
+
 
 //Fonction auxiliaire
 void afficher_state(state s){ // Affiche sous format matrice, avec chaque octet sous forme de nombre hexadécimal
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < NB; i++) {
+        for (int j = 0; j < NB; j++) {
             printf(" %02x",s[i][j]); //%02 permet d'afficher 2 caratères (enlève le problème d'affichage sur 5 par exemple)   
         }
         printf("\n");

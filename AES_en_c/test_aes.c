@@ -198,7 +198,7 @@ void test_cipher() {
     };
 
     state ciphertext;
-    aes_encrypt(ciphertext, plaintext, w, 4);
+    Cipher(ciphertext, plaintext, w, 4);
 
     test_fonction("aes_encrypt (Cipher)", compare_state(ciphertext, expected_ciphertext));
 }
