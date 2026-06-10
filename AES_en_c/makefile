@@ -1,5 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -fsanitize=address -fsanitize=undefined -fsanitize=shift -fsanitize=shift-base \
+-fsanitize=shift-exponent -fsanitize=integer-divide-by-zero -fsanitize=unreachable \
+-fsanitize=vla-bound -fsanitize=null -fsanitize=return -fsanitize=bounds-strict \
+-fsanitize=bounds -fsanitize=bool -fsanitize=signed-integer-overflow \
+-fsanitize=enum
+#L'ajout de tous ces flags n'a causé aucun problème
 
 TARGETS = test_aes test_ecb chiffrement_tux
 
