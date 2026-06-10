@@ -90,6 +90,6 @@ word key[4] = {
   bmp_free(img3);
 
 
-  // L'image déchiffrée a l'air identique à l'image chiffrée (logique).
+  // L'image déchiffrée a l'air identique à l'image originale (logique).
   return 0;
 }
