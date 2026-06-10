@@ -2,16 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "AES.h"
+#include "ECB.h"
 
-int aes_ecb_encrypt(unsigned char** dst, int *dst_data_length, unsigned char* src, int src_data_length, word key[], int key_length);
-int aes_ecb_decrypt(unsigned char** dst, int *dst_data_length, unsigned char* src, int src_data_length, word key[], int key_length);
-
-void test_fonction(const char* nom, int success) {
-    if (success) {
-        printf("[OK] %s\n", nom);
-    } else {
-        printf("[ECHEC] %s\n", nom);
-    }
+void test_fonction(char nom_fonction[],int booleen){ // affiche le message d'erreur ou de réussite selon la condition et le nom de la fonction
+        printf("[%s] %s\n",booleen ? "OK" : "ECHEC",nom_fonction);
 }
 
 void tester_ecb_taille(int taille,const char* nom_test) {
