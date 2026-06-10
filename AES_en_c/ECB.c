@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "AES.h"
-
+#include "ECB.h"
 // unsigned char* src => tableau du message en clair complet
 // int src_data_length => taille du message en clair
 // word key[] => la clé de codage
