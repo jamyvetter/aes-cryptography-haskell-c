@@ -22,13 +22,13 @@ int aes_ecb_encrypt(unsigned char** dst, int *dst_data_length, unsigned char* sr
     for (int i=src_data_length;i<*dst_data_length;i++){ //remplissage du tableau (padding)
         (*dst)[i]=(unsigned char)padding_len;
     }
-    
+    ///*
     //On n'a besoin de faire KeyExpansion qu'une seule fois.
     int Nr=val_nr(key_length);
     if (Nr==99) exit(EXIT_FAILURE);
     word expanded_key[NB*(Nr+1)];
     KeyExpansion((byte*)key,expanded_key,key_length); //Chiffrement de la clef (KeyExpansion)
-    
+    //*/
     for (int saut=0;saut<*dst_data_length;saut+=16){ //traitement des blocs de 16 octets
         state in_state, out_state;
         //convertion tableau 1D en tableau 2D colonne par colonne (car sinon stocké ligne par ligne dans le langage C)
@@ -55,13 +55,15 @@ int aes_ecb_decrypt(unsigned char** dst, int *dst_data_length, unsigned char* sr
     if (src_data_length == 0 || src_data_length % 16!=0) return -1; //il faut que la taille du message chiffré soit un multiple de 16 car il a été paddé
     *dst = (unsigned char*)malloc(src_data_length); //allocation de la taille du message chiffré
     if (*dst == NULL) return -1;
-
+//*
     //On n'a besoin de faire KeyExpansion qu'une seule fois.
     int Nr=val_nr(key_length);
     if (Nr==99) exit(EXIT_FAILURE);
-    word dw[NB*(Nr+1)]; word expanded_key[NB*(Nr+1)];
-    EqKeyExpansion((byte*)key,expanded_key,dw,key_length); //Chiffrement de la clef (KeyExpansion)  
-
+    //word dw[NB*(Nr+1)]; 
+    word expanded_key[NB*(Nr+1)];
+    //EqKeyExpansion((byte*)key,expanded_key,dw,key_length); //Chiffrement de la clef (KeyExpansion)  
+    KeyExpansion((byte*)key,expanded_key,key_length);
+//*/
 
     for (int saut=0; saut<src_data_length; saut+=16){ //dechiffrement par bloc de 16
         state in_state, out_state;
@@ -70,7 +72,9 @@ int aes_ecb_decrypt(unsigned char** dst, int *dst_data_length, unsigned char* sr
             int c=i/4;
             in_state[r][c]=src[saut+i]; }
         //aes_decrypt(out_state,in_state,key,key_length); //version lente qui chiffre la clef à chaque bloc
-        EqInvCipher(out_state,in_state,dw,key_length); // Dechiffrement en utilisant la clef étendue , version (ultra) rapide
+        //aes_decrypt2(out_state,in_state,key,key_length); //version lente qui chiffre la clef à chaque bloc
+        InvCipher(out_state, in_state,  expanded_key, key_length);
+        //EqInvCipher(out_state,in_state,dw,key_length); // Dechiffrement en utilisant la clef étendue , version (ultra) rapide
         //convertion tableau 2D en chaine de caractere
         for (int i=0;i<16;i++){
             int r=i%4;
