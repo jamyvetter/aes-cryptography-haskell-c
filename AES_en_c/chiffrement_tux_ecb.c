@@ -26,8 +26,8 @@ int main(){
   img = bmp_read("Tux.bmp");
 
   /* Récupération de l'en-tête et des pixels */
-  h = bmp_get_header(img);
-  p = bmp_get_pixels(img);
+  h = bmp_get_header(img); //en tête (taille,largeur,...)
+  p = bmp_get_pixels(img); //pixels (data)
 
 //Clef (on peut la changer ici): //--------------------
 

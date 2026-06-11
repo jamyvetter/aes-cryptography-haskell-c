@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra #-g -fsanitize=address -fsanitize=undefined -fsanitize=sh
 -fsanitize=enum
 #L'ajout de tous ces flags n'a causé aucun problème
 
-TARGETS = test_aes test_ecb test_cbc chiffrement_tux
+TARGETS = test_aes test_ecb test_cbc chiffrement_tux_ecb chiffrement_tux_cbc
 
 all: $(TARGETS)
 
@@ -19,10 +19,11 @@ test_ecb: AES.o ECB.o test_ecb.o
 test_cbc: AES.o CBC.o test_cbc.o
 	$(CC) $(CFLAGS) -o test_cbc AES.o CBC.o test_cbc.o
 
-chiffrement_tux: AES.o ECB.o bmp.o chiffrement_tux.o
-	$(CC) $(CFLAGS) -o chiffrement_tux AES.o ECB.o bmp.o chiffrement_tux.o
+chiffrement_tux_ecb: AES.o ECB.o bmp.o chiffrement_tux_ecb.o
+	$(CC) $(CFLAGS) -o chiffrement_tux_ecb AES.o ECB.o bmp.o chiffrement_tux_ecb.o
 
-# --- Compilation (Création des fichiers objets .o) ---
+chiffrement_tux_cbc: AES.o CBC.o bmp.o chiffrement_tux_cbc.o
+	$(CC) $(CFLAGS) -o chiffrement_tux_cbc AES.o CBC.o bmp.o chiffrement_tux_cbc.o
 
 AES.o: AES.c AES.h
 	$(CC) $(CFLAGS) -c AES.c
@@ -45,10 +46,11 @@ test_ecb.o: test_ecb.c ECB.h AES.h
 test_cbc.o: test_cbc.c CBC.h AES.h
 	$(CC) $(CFLAGS) -c test_cbc.c
 
-chiffrement_tux.o: chiffrement_tux.c ECB.h bmp.h
-	$(CC) $(CFLAGS) -c chiffrement_tux.c
+chiffrement_tux_ecb.o: chiffrement_tux_ecb.c ECB.h bmp.h
+	$(CC) $(CFLAGS) -c chiffrement_tux_ecb.c
 
-# --- Nettoyage ---
+chiffrement_tux_cbc.o: chiffrement_tux_cbc.c CBC.h bmp.h
+	$(CC) $(CFLAGS) -c chiffrement_tux_cbc.c
 
 clean:
 	rm -f *.o $(TARGETS)

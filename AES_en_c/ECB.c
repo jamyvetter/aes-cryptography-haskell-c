@@ -37,7 +37,7 @@ int aes_ecb_encrypt(unsigned char** dst, int *dst_data_length, unsigned char* sr
             int c=i/4; //quotient donne la colonne 
             in_state[r][c]=(*dst)[saut+i];
         }
-        //aes_encrypt(out_state, in_state, key, key_length);//En faisant ça,la clef est étendue à chaque tour de boucle alors qu'elle peut être conservée. (version lente)
+        //aes_encrypt(out_state, in_state, key, key_length);//En faisant ça, la clef est étendue à chaque tour de boucle alors qu'elle peut être conservée. (version lente)
         Cipher(out_state,in_state,expanded_key,key_length); //Encodage avec la clef chiffrée (version rapide)
         
         
