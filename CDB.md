@@ -150,3 +150,18 @@
     - Création d'un script de validation globale (`tests_complets.ghci`).
     - Amélioration et réorganisation générale des scripts de tests existants.
 </details>
+
+
+Mesures temporelles du chiffrement de l'image Tux, pour la version avec l'algorithme de keyExpansion qui ne se répète pas, EqInvCipher utilisé. 
+
+Temps execution chiffrement : 0.146 secondes, pour un débit de  6250409 o/s
+Temps execution dechiffrement : 0.745 secondes, pour un débit de  1224515 o/s
+Temps execution total : 0.891 secondes, pour un débit de  1023919 o/s
+
+
+Graphe des performances obtenues avec valgring et kcachgrind: (graphe_1_chiffrement_tux)
+
+
+Mesures temporelles du chiffrement de l'image Tux, pour la version avec l'algorithme de keyExpansion qui se répète (appelé au chiffrement/déchiffrement de chaque bloc), EqInvCipher utilisé. 
+
+Graphe des performances obtenues avec valgring et kcachgrind:

@@ -1,8 +1,24 @@
 #include "bmp.h"
 #include "ECB.h"
 #include <stddef.h>
+#include <sys/time.h>
+#include <stdio.h>
+
+//Mesure du temps d'éxecution (déjà utilisés pour le projet othello)
+double obtenir_temps(){
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
+}
+
+
+//double debut= obtenir_temps();
+//double fin= obtenir_temps();
+//printf("Temps execution : %.3f secondes, pour un débit de  %f o/s\n", fin -debut, taille_image/(fin-debut));
 
 int main(){
+  double debut= obtenir_temps();
+
   bmp_image *img, *img2,*img3;
   chunk *h,  *h2,*h3, *p, *p2,*p3;
 
@@ -65,8 +81,7 @@ word key[4] = {
   /* Ecriture de l'image chiffree sur disque */
   bmp_write("Tux_chiffre_256.bmp", img2);
 
-  /* Libération de l'image chiffree */
-  //bmp_free(img2);
+  double fin_chiffrement= obtenir_temps();
 
 //--------------------------------------Dechiffrement -------
 
@@ -79,6 +94,9 @@ word key[4] = {
 
   //Fonction à utiliser pour chiffre Tux
   aes_ecb_decrypt(&dst_u, &dst_data_length_u, pointeur_chunk_src_u, taille_pixels_src_u, key, key_size); // Chiffre les pixels avec ECB
+  //NOTE: ici on rechiffre la clef, même si on l'a déjà étendue pour le chiffrement, ce choix est fait pour montrer le temps pris par 
+  // un déchiffrement classique à partir d'une clef non étendue
+
 
   p3= as_chunk((char *) dst_u, dst_data_length_u);// Création d'un bloc à partir du pointeur contenant le chiffrement des pixels de l'image
 
@@ -86,10 +104,15 @@ word key[4] = {
   img3 = bmp_create(h3, p3); //fusion entête-pixels déchiffrés
 
   bmp_free(img2);
-  bmp_write("Tux_dechiffre_256.bmp", img3);
+  bmp_write("Tux_dechiffre_256.bmp", img3);   // L'image déchiffrée a l'air identique à l'image originale (logique).
   bmp_free(img3);
 
+  double fin =obtenir_temps();
+  int taille_image= 912054;//octets
+  printf("Temps execution chiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin_chiffrement-debut, taille_image/(fin_chiffrement-debut));
+  printf("Temps execution dechiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin-fin_chiffrement, taille_image/(fin-fin_chiffrement));
+  printf("Temps execution total : %.3f secondes, pour un débit de  %.0f o/s\n",fin-debut, taille_image/(fin-debut));
 
-  // L'image déchiffrée a l'air identique à l'image originale (logique).
+
   return 0;
 }

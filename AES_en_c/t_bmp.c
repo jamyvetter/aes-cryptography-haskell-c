@@ -1,7 +1,8 @@
+// Fichier d'exemple pour la gestion des fichiers .bmp 
+
 #include "bmp.h"
 
-int
-main()
+int main()
 {
   bmp_image *img, *img2;
   chunk *h, *h2, *p, *p2;
