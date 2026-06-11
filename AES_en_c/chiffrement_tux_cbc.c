@@ -17,8 +17,6 @@ double obtenir_temps(){
 //printf("Temps execution : %.3f secondes, pour un débit de  %f o/s\n", fin -debut, taille_image/(fin-debut));
 
 int main(){
-  double debut= obtenir_temps();
-
   bmp_image *img, *img2,*img3;
   chunk *h,  *h2,*h3, *p, *p2,*p3;
 
@@ -71,8 +69,10 @@ word key[4] = {
 
   int taille_pixels_src = chunk_get_size(p);
   unsigned char* pointeur_chunk_src= (unsigned char*)chunk_get_data(p); //(transypage pour avoir le 'unsigned' requis par aes_encrypt)
-
+  
+  double debut= obtenir_temps();
   aes_cbc_encrypt(&dst, &dst_data_length, pointeur_chunk_src, taille_pixels_src, iv, key, key_size); // Chiffre les pixels avec CBC
+  double fin_chiffrement= obtenir_temps();
 
   p2= as_chunk((char *) dst, dst_data_length);// Création d'un bloc à partir du pointeur contenant le chiffrement des pixels de l'image
 
@@ -85,8 +85,6 @@ word key[4] = {
   /* Ecriture de l'image chiffree sur disque */
   bmp_write("pictures/Tux_chiffre_cbc_128.bmp", img2);
 
-  double fin_chiffrement= obtenir_temps();
-
 //--------------------------------------Dechiffrement -------
 
   //Destination:
@@ -95,13 +93,13 @@ word key[4] = {
 
   int taille_pixels_src_u = chunk_get_size(p2);
   unsigned char* pointeur_chunk_src_u= (unsigned char*)chunk_get_data(p2); //(transypage pour avoir le 'unsigned' requis par aes_encrypt)
-
+  
+  double debut_dechiffrement=obtenir_temps();
   //Fonction à utiliser pour chiffre Tux
   aes_cbc_decrypt(&dst_u, &dst_data_length_u, pointeur_chunk_src_u, taille_pixels_src_u, iv, key, key_size); // Déchiffre les pixels avec CBC
   //NOTE: ici on rechiffre la clef, même si on l'a déjà étendue pour le chiffrement, ce choix est fait pour montrer le temps pris par 
   // un déchiffrement classique à partir d'une clef non étendue
-
-
+  double fin_dechiffrement =obtenir_temps();
   p3= as_chunk((char *) dst_u, dst_data_length_u);// Création d'un bloc à partir du pointeur contenant le chiffrement des pixels de l'image
 
   h3 = chunk_copy(h2);// Copie de l'entête (non modifiée)
@@ -111,11 +109,8 @@ word key[4] = {
   bmp_write("pictures/Tux_dechiffre_cbc_128.bmp", img3);   // L'image déchiffrée a l'air identique à l'image originale (logique).
   bmp_free(img3);
 
-  double fin =obtenir_temps();
   int taille_image= 912054;//octets
   printf("Temps execution chiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin_chiffrement-debut, taille_image/(fin_chiffrement-debut));
-  printf("Temps execution dechiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin-fin_chiffrement, taille_image/(fin-fin_chiffrement));
-  printf("Temps execution total : %.3f secondes, pour un débit de  %.0f o/s\n",fin-debut, taille_image/(fin-debut));
-
+  printf("Temps execution dechiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin_dechiffrement-debut_dechiffrement, taille_image/(fin_dechiffrement-debut_dechiffrement));
   return 0;
 }
