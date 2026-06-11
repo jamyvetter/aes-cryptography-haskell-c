@@ -78,18 +78,18 @@ int aes_ecb_decrypt(unsigned char** dst, int *dst_data_length, unsigned char* sr
             (*dst)[saut+i]=out_state[r][c];
         }
 }
-    int padding_len = (*dst)[src_data_length - 1]; //le dernier octet indique le nombre d'octets qui ont etes ajouté lors du chiffrement => a supprimer
+    int padding_len = (*dst)[src_data_length - 1]; //le dernier octet indique le nombre d'octets qui ont etes ajouté lors du chiffrement => nombre d'octets a supprimer
     
-    // Vérification de sécurité du padding
+    // vérification de sécurité du padding
     if (padding_len == 0 || padding_len > 16){ //si padding est faux
         free(*dst);
         *dst=NULL;
         return -1;
     }
     for (int i=1;i<=padding_len;i++) { //si deux valeurs consecutives sont differentes a la fin du message => erreur de padding
-        if ((*dst)[src_data_length - i] != padding_len) {
+        if ((*dst)[src_data_length-i] !=padding_len) {
             free(*dst);
-            *dst = NULL;
+            *dst=NULL;
             return -1;
     }
     }

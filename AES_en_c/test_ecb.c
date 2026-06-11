@@ -12,7 +12,7 @@ void tester_ecb_taille(int taille,const char* nom_test) {
     byte key[16]={0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c}; // clé non étendue
     unsigned char *clair=(unsigned char*)malloc(taille); //allocation de memoire pour le message dorigine
     for (int i=0;i<taille;i++){
-        clair[i]=(unsigned char)(i%256); //remplit le tableau
+        clair[i]=(unsigned char)(i%256); //remplit le tableau de nombres qui se suivent (0,1,2,...255,0,1,...)
     }
     unsigned char *chiffre=NULL; //pointeur pour le message chiffré
     int chiffre_len=0; //taille du message chiffré (>taille clair)
