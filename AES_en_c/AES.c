@@ -160,10 +160,11 @@ byte xtime(byte x) {
 void MixColumns(state s) {
     for (int c = 0; c < 4; c++) {
         byte s0 = s[0][c], s1 = s[1][c], s2 = s[2][c], s3 = s[3][c];
-        s[0][c] = xtime(s0) ^ (xtime(s1) ^ s1) ^ s2 ^ s3;
-        s[1][c] = s0 ^ xtime(s1) ^ (xtime(s2) ^ s2) ^ s3;
-        s[2][c] = s0 ^ s1 ^ xtime(s2) ^ (xtime(s3) ^ s3);
-        s[3][c] = (xtime(s0) ^ s0) ^ s1 ^ s2 ^ xtime(s3);
+        byte x_s0= xtime(s0),x_s1=xtime(s1),x_s2=xtime(s2),x_s3=xtime(s3);
+        s[0][c] = x_s0 ^ (x_s1 ^ s1) ^ s2 ^ s3;
+        s[1][c] = s0 ^ x_s1 ^ (x_s2 ^ s2) ^ s3;
+        s[2][c] = s0 ^ s1 ^ x_s2 ^ (x_s3 ^ s3);
+        s[3][c] = (x_s0 ^ s0) ^ s1 ^ s2 ^ x_s3;
     }
 }
 
@@ -182,27 +183,30 @@ void InvShiftRows(state s){
 void InvMixColumns(state s) {
     for (int c=0;c<NB; c++) {
         byte s0=s[0][c], s1=s[1][c], s2=s[2][c], s3=s[3][c];
-        
+        byte x_s0= xtime(s0),x_s1=xtime(s1),x_s2=xtime(s2),x_s3=xtime(s3);
+        byte x_x_s0=xtime(x_s0),x_x_s1=xtime(x_s1),x_x_s2=xtime(x_s2),x_x_s3=xtime(x_s3);
+        byte x3_s0=xtime(x_x_s0),x3_s1=xtime(x_x_s1),x3_s2=xtime(x_x_s2),x3_s3=xtime(x_x_s3);
+
         // 14=0x0E (x^3+x^2+x), 11=0x0B (x^3+x+1), 13=0x0D (x^3+x^2+1), 9=0x09 (x^3+1)
-        s[0][c] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ xtime(s0)) ^ //0x0E * s0 
-                  (xtime(xtime(xtime(s1))) ^ xtime(s1) ^ s1) ^ //0x0B * s1 
-                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ s2) ^ //0x0D * s2 
-                  (xtime(xtime(xtime(s3))) ^ s3); //0x09 * s3
+        s[0][c] = (x3_s0 ^ x_x_s0 ^ x_s0) ^ //0x0E * s0 
+                  (x3_s1 ^ x_s1 ^ s1) ^ //0x0B * s1 
+                  (x3_s2 ^ x_x_s2 ^ s2) ^ //0x0D * s2 
+                  (x3_s3 ^ s3); //0x09 * s3
                   
-        s[1][c] = (xtime(xtime(xtime(s0))) ^ s0) ^ //0x09 * s0
-                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ xtime(s1)) ^ //0x0E * s1 
-                  (xtime(xtime(xtime(s2))) ^ xtime(s2) ^ s2) ^ //0x0B * s2 
-                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ s3); //0x0D * s3
+        s[1][c] = (x3_s0 ^ s0) ^ //0x09 * s0
+                  (x3_s1 ^ x_x_s1 ^ x_s1) ^ //0x0E * s1 
+                  (x3_s2 ^ x_s2 ^ s2) ^ //0x0B * s2 
+                  (x3_s3 ^ x_x_s3 ^ s3); //0x0D * s3
                   
-        s[2][c] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ s0) ^ //0x0D * s0
-                  (xtime(xtime(xtime(s1))) ^ s1) ^ //0x09 * s1
-                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ xtime(s2)) ^ //0x0E * s2
-                  (xtime(xtime(xtime(s3))) ^ xtime(s3) ^ s3); //0x0B * s3
+        s[2][c] = (x3_s0 ^ x_x_s0 ^ s0) ^ //0x0D * s0
+                  (x3_s1 ^ s1) ^ //0x09 * s1
+                  (x3_s2 ^ x_x_s2 ^ x_s2) ^ //0x0E * s2
+                  (x3_s3 ^ x_s3 ^ s3); //0x0B * s3
                   
-        s[3][c] = (xtime(xtime(xtime(s0))) ^ xtime(s0) ^ s0) ^ //0x0B * s0
-                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ s1) ^ //0x0D * s1
-                  (xtime(xtime(xtime(s2))) ^ s2) ^ //0x09 * s2
-                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ xtime(s3)); //0x0E * s3
+        s[3][c] = (x3_s0 ^ x_s0 ^ s0) ^ //0x0B * s0
+                  (x3_s1 ^ x_x_s1 ^ s1) ^ //0x0D * s1
+                  (x3_s2 ^ s2) ^ //0x09 * s2
+                  (x3_s3 ^ x_x_s3 ^ x_s3); //0x0E * s3
     }
 }
 
@@ -272,26 +276,28 @@ void InvMixColumns_eq(word s[NB]) {
     //Comme l'entrée est 'inversée' , le rôle de mixColumns est inversée aussi, on échange juste lignes et colonnes
     for (int c = 0; c < NB; c++) {
         byte s0 = s[c][0], s1 = s[c][1], s2 = s[c][2], s3 = s[c][3];
-        
-        s[c][0] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ xtime(s0)) ^ 
-                  (xtime(xtime(xtime(s1))) ^ xtime(s1) ^ s1) ^ 
-                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ s2) ^ 
-                  (xtime(xtime(xtime(s3))) ^ s3); 
+        byte x_s0= xtime(s0),x_s1=xtime(s1),x_s2=xtime(s2),x_s3=xtime(s3);
+        byte x_x_s0=xtime(x_s0),x_x_s1=xtime(x_s1),x_x_s2=xtime(x_s2),x_x_s3=xtime(x_s3);
+        byte x3_s0=xtime(x_x_s0),x3_s1=xtime(x_x_s1),x3_s2=xtime(x_x_s2),x3_s3=xtime(x_x_s3);
+        s[c][0] = (x3_s0 ^ x_x_s0 ^ x_s0) ^ 
+                  (x3_s1 ^ x_s1 ^ s1) ^ 
+                  (x3_s2 ^ x_x_s2 ^ s2) ^ 
+                  (x3_s3 ^ s3); 
                   
-        s[c][1] = (xtime(xtime(xtime(s0))) ^ s0) ^ 
-                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ xtime(s1)) ^ 
-                  (xtime(xtime(xtime(s2))) ^ xtime(s2) ^ s2) ^ 
-                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ s3); 
+        s[c][1] = (x3_s0 ^ s0) ^ 
+                  (x3_s1 ^ x_x_s1 ^ x_s1) ^ 
+                  (x3_s2 ^ x_s2 ^ s2) ^ 
+                  (x3_s3 ^ x_x_s3 ^ s3); 
                   
-        s[c][2] = (xtime(xtime(xtime(s0))) ^ xtime(xtime(s0)) ^ s0) ^ 
-                  (xtime(xtime(xtime(s1))) ^ s1) ^ 
-                  (xtime(xtime(xtime(s2))) ^ xtime(xtime(s2)) ^ xtime(s2)) ^ 
-                  (xtime(xtime(xtime(s3))) ^ xtime(s3) ^ s3); 
+        s[c][2] = (x3_s0 ^ x_x_s0 ^ s0) ^ 
+                  (x3_s1 ^ s1) ^ 
+                  (x3_s2 ^ x_x_s2 ^ x_s2) ^ 
+                  (x3_s3 ^ x_s3 ^ s3); 
                   
-        s[c][3] = (xtime(xtime(xtime(s0))) ^ xtime(s0) ^ s0) ^ 
-                  (xtime(xtime(xtime(s1))) ^ xtime(xtime(s1)) ^ s1) ^ 
-                  (xtime(xtime(xtime(s2))) ^ s2) ^ 
-                  (xtime(xtime(xtime(s3))) ^ xtime(xtime(s3)) ^ xtime(s3)); 
+        s[c][3] = (x3_s0 ^ x_s0 ^ s0) ^ 
+                  (x3_s1 ^ x_x_s1 ^ s1) ^ 
+                  (x3_s2 ^ s2) ^ 
+                  (x3_s3 ^ x_x_s3 ^ x_s3); 
     }
 }
 //Cette version génère la clef de base et celle utilisée pour l'eqCipherInv(dw)
