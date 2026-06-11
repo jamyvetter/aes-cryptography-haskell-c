@@ -16,12 +16,16 @@ double obtenir_temps(){
 //double fin= obtenir_temps();
 //printf("Temps execution : %.3f secondes, pour un débit de  %f o/s\n", fin -debut, taille_image/(fin-debut));
 
-int main(){
+int main(int argc, char *argv[]){
+    if (argc !=2){
+        printf("Utilisation : %s <fichier_a_chiffrer>\n",argv[0]);
+        return 1;
+    }
   bmp_image *img, *img2,*img3;
   chunk *h,  *h2,*h3, *p, *p2,*p3;
 
   /* Chargement de l'image en mémoire */
-  img = bmp_read("pictures/Tux.bmp");
+  img = bmp_read(argv[1]);
 
   /* Récupération de l'en-tête et des pixels */
   h = bmp_get_header(img); //en tête (taille,largeur,...)
