@@ -192,3 +192,14 @@ Temps execution dechiffrement : 0.797 secondes, pour un débit de  1144319 o/s
 graphe_3 decrypt1
 
 On voit aussi que xtimes est utilisé beaucoup de fois.
+En regardant le code, on voit que des appels à xtimes sont inutiles et répétés au sein de la fonction. En corrigeant les codes de InvMixcolumns, InvMixcolumns_eq et Mixcolumns, on a pour la version avec déchiffrement non-equivalent:
+
+Temps execution chiffrement : 0.132 secondes, pour un débit de  6908603 o/s
+Temps execution dechiffrement : 0.209 secondes, pour un débit de  4368806 o/s
+
+Pour le dechiffrement equivalent: 
+
+Temps execution chiffrement : 0.132 secondes, pour un débit de  6890187 o/s
+Temps execution dechiffrement : 0.211 secondes, pour un débit de  4327926 o/s
+
+On obtient enfin des performances similaires entre EqInvCipher et InvCipher. La perte de temps de xtimes() est résoule.
