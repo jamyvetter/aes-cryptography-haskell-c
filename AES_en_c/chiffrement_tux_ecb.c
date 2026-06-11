@@ -22,7 +22,7 @@ int main(){
   chunk *h,  *h2,*h3, *p, *p2,*p3;
 
   /* Chargement de l'image en mémoire */
-  img = bmp_read("Tux.bmp");
+  img = bmp_read("pictures/Tux.bmp");
 
   /* Récupération de l'en-tête et des pixels */
   h = bmp_get_header(img); //en tête (taille,largeur,...)
@@ -103,9 +103,9 @@ word key[4] = {
   /* Libération de la mémoire de l'image originale */
   bmp_free(img);
   /* Ecriture de l'image chiffree sur disque */ //(a la fin sinon kachgrind s'arrête)
-  bmp_write("Tux_chiffre_256.bmp", img2);
+  bmp_write("pictures/Tux_chiffre_256.bmp", img2);
   bmp_free(img2);
-  bmp_write("Tux_dechiffre_256.bmp", img3);   // L'image déchiffrée a l'air identique à l'image originale (logique).
+  bmp_write("pictures/Tux_dechiffre_256.bmp", img3);   // L'image déchiffrée a l'air identique à l'image originale (logique).
   bmp_free(img3);
 
   
