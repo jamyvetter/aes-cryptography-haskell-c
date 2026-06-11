@@ -202,4 +202,6 @@ Pour le dechiffrement equivalent:
 Temps execution chiffrement : 0.132 secondes, pour un débit de  6890187 o/s
 Temps execution dechiffrement : 0.211 secondes, pour un débit de  4327926 o/s
 
-On obtient enfin des performances similaires entre EqInvCipher et InvCipher. La perte de temps de xtimes() est résoule.
+On obtient enfin des performances similaires entre EqInvCipher et InvCipher. La perte de temps de xtimes() est résoule.La sous fonction la plus appelée est maintenant 'AddRoundKey'
+
+![text](AES_en_c/pictures/graphique_V2_optimisé)
