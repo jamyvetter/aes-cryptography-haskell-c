@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -O0 -g#-fsanitize=address -fsanitize=undefined -fsanitize
 -fsanitize=enum
 #L'ajout de tous ces flags n'a causé aucun problème
 
-TARGETS = test_aes test_ecb test_cbc chiffrement_tux_ecb chiffrement_tux_cbc
+TARGETS = test_aes test_ecb test_cbc chiffrement_tux_ecb chiffrement_tux_cbc entropie
 
 all: $(TARGETS)
 
@@ -24,6 +24,9 @@ chiffrement_tux_ecb: AES.o ECB.o bmp.o chiffrement_tux_ecb.o
 
 chiffrement_tux_cbc: AES.o CBC.o bmp.o chiffrement_tux_cbc.o
 	$(CC) $(CFLAGS) -o chiffrement_tux_cbc AES.o CBC.o bmp.o chiffrement_tux_cbc.o
+
+entropie: entropie.c bmp.o
+	$(CC) $(CFLAGS) -o entropie entropie.c bmp.o -lm
 
 AES.o: AES.c AES.h
 	$(CC) $(CFLAGS) -c AES.c

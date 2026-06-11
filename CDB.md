@@ -205,3 +205,11 @@ Temps execution dechiffrement : 0.211 secondes, pour un débit de  4327926 o/s
 On obtient enfin des performances similaires entre EqInvCipher et InvCipher. La perte de temps de xtimes() est résoule.La sous fonction la plus appelée est maintenant 'AddRoundKey'
 
 ![text](AES_en_c/pictures/graphique_V2_optimisé)
+
+
+
+Entropie :
+Image de base (Tux.bmp): 3.94
+Tux chiffré en ECB : 6.9 , mais on reconnait toujours l'image de base
+Tux chiffré en CBC : 7.99... , on atteint presque le maximum et l'image est illisible.
+Cela montre la bien plus grande fiabilité de CBC par rapport à ECB
