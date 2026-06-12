@@ -321,21 +321,30 @@ Les performances obtenues avec `EqInvCipher` et `InvCipher` deviennent désormai
 
 Cette analyse montre qu'il est souvent plus efficace d'examiner en détail le comportement du programme avant de chercher à modifier l'algorithme lui-même. Dans notre cas, une simple optimisation locale a finalement apporté des gains bien plus importants que le choix entre les variantes `EqInvCipher` et `InvCipher`.
 
-### Optimisation du compilateur
-Les arguments des flags de compilation sont testés successivement: -O0,-O1,-O2,-O3
+## Optimisation de la traduction via le compilateur
 
-| Opération | Temps d'exécution 
-|------------|------------------
-| Chiffrement_O0 | 0.153 s 
-| Déchiffrement_O0 |  0.246 s
-| Chiffrement_O1 | 0.045 s 
-| Déchiffrement_O1 |  0.072 s
-| Chiffrement_O2 | 0.020 s 
-| Déchiffrement_O2 |  0.025 s
-| Chiffrement_O3 | 0.014 s 
-| Déchiffrement_O3 | 0.015 s 
+Après avoir optimisé au mieux notre code source C d'un point de vue algorithmique, nous avons cherché à "sur-optimiser" l'exécution en tirant parti des optimisations matérielles et de traduction proposées par le compilateur GCC (`-O1`, `-O2`, `-O3`).
 
-On observe que une forte diminution du temps d'exécution, le programme est 10 fois plus rapide avec -O3 qu'avec le flag -O0. 
+L'objectif ici n'est plus de modifier le code, mais de laisser le compilateur trouver les meilleurs "raccourcis" en langage machine (meilleure allocation des registres, déroulement des boucles, vectorisation). 
+
+Pour ce faire, nous avons testé notre version finale optimisée avec différents niveaux d'optimisation (en faisant une moyenne sur 3 exécutions pour lisser les variations du système) :
+
+| Niveau | Temps Chiffrement | Débit Chiffrement | Temps Déchiffrement | Débit Déchiffrement |
+|--------|-------------------|-------------------|---------------------|---------------------|
+| **-O0** (Base) | ~ 0,132 s | ~ 6 900 000 o/s | ~ 0,209 s | ~ 4 350 000 o/s |
+| **-O1** | 0,091 s | 10 396 033 o/s | 0,107 s | 8 514 305 o/s |
+| **-O2** | 0,045 s | 21 724 127 o/s | 0,043 s | 21 168 886 o/s |
+| **-O3** | 0,036 s | 25 854 969 o/s | 0,039 s | 23 660 786 o/s |
+
+### Analyse des résultats
+
+- **Le passage à `-O1`** apporte déjà une amélioration sensible des performances : le temps de déchiffrement est presque divisé par deux par rapport à la version non optimisée.
+- **Le passage à `-O2`** marque une nouvelle étape. Grâce à des optimisations plus avancées, les performances augmentent fortement et dépassent largement celles obtenues avec`-O1`. Notre programme devient ainsi 3 à 4 fois plus rapide qu'en `-O0`.
+- **Au niveau `-O3`** tente des optimisations encore plus agressives (comme le *loop unrolling*). On gagne encore quelques millisecondes et on dépasse les 25 Mo/s en chiffrement. Les gains restent toutefois plus modestes que ceux observés lors du passage de `-O1` à `-O2`, signe que l'on commence à atteindre les limites des optimisations automatiques du compilateur.
+
+L'analyse du code assembleur généré avec `objdump -M intel -dS` permet de comprendre d'où vient cette amélioration des performances. Sans optimisation (`-O0`), le programme réalise de nombreux accès mémoire inutiles pour stocker et récupérer des valeurs intermédiaires. Avec `-O3`, le compilateur produit un code beaucoup plus efficace en utilisant davantage les registres du processeur et en simplifiant certaines opérations répétitives.
+
+Ces optimisations réalisées automatiquement par le compilateur expliquent l'importante accélération observée, sans qu'il ait été nécessaire de modifier le code source en C.
 
 </details>
 
