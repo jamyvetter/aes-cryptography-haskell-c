@@ -321,4 +321,23 @@ Les performances obtenues avec `EqInvCipher` et `InvCipher` deviennent désormai
 
 Cette analyse montre qu'il est souvent plus efficace d'examiner en détail le comportement du programme avant de chercher à modifier l'algorithme lui-même. Dans notre cas, une simple optimisation locale a finalement apporté des gains bien plus importants que le choix entre les variantes `EqInvCipher` et `InvCipher`.
 
+### Optimisation du compilateur
+Les arguments des flags de compilation sont testés successivement: -O0,-O1,-O2,-O3
+
+| Opération | Temps d'exécution 
+|------------|------------------
+| Chiffrement_O0 | 0.153 s 
+| Déchiffrement_O0 |  0.246 s
+| Chiffrement_O1 | 0.045 s 
+| Déchiffrement_O1 |  0.072 s
+| Chiffrement_O2 | 0.020 s 
+| Déchiffrement_O2 |  0.025 s
+| Chiffrement_O3 | 0.014 s 
+| Déchiffrement_O3 | 0.015 s 
+
+On observe que une forte diminution du temps d'exécution, le programme est 10 fois plus rapide avec -O3 qu'avec le flag -O0. 
+
 </details>
+
+
+

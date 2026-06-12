@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O0 -g#-fsanitize=address -fsanitize=undefined -fsanitize=shift -fsanitize=shift-base \
+CFLAGS = -Wall -Wextra -O3 #-g -fsanitize=address -fsanitize=undefined -fsanitize=shift -fsanitize=shift-base \
 -fsanitize=shift-exponent -fsanitize=integer-divide-by-zero -fsanitize=unreachable \
 -fsanitize=vla-bound -fsanitize=null -fsanitize=return -fsanitize=bounds-strict \
 -fsanitize=bounds -fsanitize=bool -fsanitize=signed-integer-overflow \

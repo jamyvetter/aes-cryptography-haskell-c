@@ -107,10 +107,8 @@ word key[4] = {
   bmp_write("pictures/Tux_dechiffre_256.bmp", img3);   // L'image déchiffrée a l'air identique à l'image originale (logique).
   bmp_free(img3);
 
-  
-  int taille_image= 912054;//octets
-  printf("Temps execution chiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin_chiffrement-debut, taille_image/(fin_chiffrement-debut));
-  printf("Temps execution dechiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin_dechiffrement-debut_dechiffrement, taille_image/(fin_dechiffrement-debut_dechiffrement));
+  printf("Temps execution chiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin_chiffrement-debut, taille_pixels_src/(fin_chiffrement-debut));
+  printf("Temps execution dechiffrement : %.3f secondes, pour un débit de  %.0f o/s\n",fin_dechiffrement-debut_dechiffrement, taille_pixels_src/(fin_dechiffrement-debut_dechiffrement));
 
 
   return 0;
