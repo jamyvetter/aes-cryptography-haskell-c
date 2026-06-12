@@ -1,4 +1,4 @@
-# Carnet de Bord : Projet Cryptographie / Polynômes
+# Carnet de Bord : Projet Cryptographie
 
 ---
 
@@ -136,12 +136,9 @@
     - **Adaptation des algorithmes à un corps quelconque** : Modification des fonctions `de_pol`, `euclide` et `inv_p` pour imposer la contrainte `Corps` au lieu de `Anneau`, et utilisation de la vraie soustraction (`sub`) dans le calcul des coefficients de Bézout.
     - **Normalisation et corrections** : Ajout d’une normalisation du PGCD dans `inv_p` afin d’obtenir un polynôme unitaire (coefficient dominant égal à 1) et résolution des problèmes d'inversion liés aux zéros non supprimés en fin de polynômes.
     - **Tests et validation globale** : Création du corps abstrait `Z3` et validation de la généralisation sur plusieurs cas avancés (changement de corps $GF(2)$/$GF(3)$, dividende < diviseur) via `tests_corps_quelconque.ghci`. Vérification du bon fonctionnement de l’AES après les modifications grâce à l’exécution complète de `tests_anneaux.ghci` et `tests_chiffrement.ghci`.
-</details>
 
----
 
-<details open>
-<summary><b>Finalisation du projet (Après la Séance 4)</b></summary> 
+### Finalisation de l'implémentation en Haskell (Après la Séance 4)
 
 #### Jamyson
 - [x] **Documentation globale** : Rédaction de la documentation complète détaillant l'architecture du projet (`documentation_projet.md`).
@@ -151,65 +148,177 @@
     - Amélioration et réorganisation générale des scripts de tests existants.
 </details>
 
+---
 
-Mesures temporelles du chiffrement de l'image Tux, pour la version avec l'algorithme de keyExpansion qui ne se répète pas, EqInvCipher utilisé. 
+ <details>
+<summary><b>Semaine de PX222 : Implémentation AES en C - (08/06/26-12/06/26)</b></summary>
 
-Temps execution chiffrement : 0.143 secondes, pour un débit de  6367982 o/s
-Temps execution dechiffrement : 0.745 secondes, pour un débit de  1224169 o/s
+## Analyse de l'entropie des modes de chiffrement
 
-Graphe des performances obtenues avec valgring et kcachgrind: (graphe_1_chiffrement)
+Afin de comparer les modes ECB et CBC, nous avons calculé l'entropie de l'image de Tux non chiffrée, puis chiffrée en ECB et en CBC à l'aide du programme `entropie.c`.
 
+Les résultats obtenus sont les suivants :
 
-[text](AES_en_c/pictures/graphe1_chiffrement)
+| Fichier | Entropie |
+|----------|----------|
+| Image originale (`Tux.bmp`) | 3,938782 |
+| Image chiffrée en ECB (`Tux_chiffre_256_ecb.bmp`) | 6,994900 |
+| Image chiffrée en CBC (`Tux_chiffre_cbc_128.bmp`) | 7,999785 |
 
+On observe tout d'abord que l'image originale possède une entropie relativement faible. Cela est normal, puisqu'une image contient de nombreuses zones uniformes et donc beaucoup de redondance.
 
-Mesures temporelles du chiffrement de l'image Tux, pour la version avec l'algorithme de keyExpansion qui ne se répète pas, InvCipher utilisé (non-eq). 
-Temps execution chiffrement : 0.144 secondes, pour un débit de  6332605 o/s
-Temps execution dechiffrement : 0.735 secondes, pour un débit de  1240321 o/s
+Après chiffrement, l'entropie augmente fortement dans les deux cas, signe que les données deviennent beaucoup plus difficiles à prédire. Toutefois, une différence importante apparaît entre les modes ECB et CBC.
 
-[(graphe_42)](AES_en_c/pictures/graphe_42)
+### Comparaison des modes ECB et CBC
 
-->Le déchiffrement est plus rapide, la version non eq est donc plus rapide étonament.
+Le mode **ECB (Electronic Codebook)** chiffre chaque bloc indépendamment des autres. Ainsi, deux blocs identiques dans l'image d'origine produisent systématiquement deux blocs chiffrés identiques.
 
+Dans le cas de l'image Tux, les grandes zones de couleur uniforme génèrent de nombreux blocs identiques. Même après chiffrement, certaines structures visuelles restent donc perceptibles. Cela explique pourquoi l'entropie obtenue en ECB reste limitée à environ 7,0.
 
-Mesures temporelles du chiffrement de l'image Tux, pour la version avec l'algorithme de keyExpansion qui se répète (appelé au chiffrement/déchiffrement de chaque bloc), EqInvCipher utilisé. 
+Le mode **CBC (Cipher Block Chaining)** fonctionne différemment. Avant d'être chiffré, chaque bloc est combiné avec le bloc chiffré précédent à l'aide d'un XOR. Le premier bloc utilise quant à lui un vecteur d'initialisation (IV).
 
-Temps execution chiffrement : 0.209 secondes, pour un débit de  4366737 o/s
-Temps execution dechiffrement : 1.440 secondes, pour un débit de  633278 o/s
+Grâce à ce mécanisme, deux blocs identiques dans l'image d'origine produisent des blocs chiffrés différents. Les motifs visuels disparaissent alors complètement et le résultat se rapproche d'un bruit aléatoire.
 
+### Entropie attendue pour un fichier correctement chiffré
 
--> On perd la moitié du débit !
+Un algorithme de chiffrement moderne doit produire un résultat indiscernable d'une suite de données aléatoires.
 
-Graphe des performances obtenues avec valgring et kcachgrind: (graphe2_eqcipher_repkey)
+Comme un fichier est constitué d'octets pouvant prendre 256 valeurs différentes (de 0 à 255), l'entropie maximale théorique vaut :
 
-![text](AES_en_c/pictures/graphe2_eqcipher_repkey)
+$$
+H_{max} = \log_2(256) = 8
+$$
 
-Mesures avec decryption mode sans version cipher equivalent, avec répétition de KeyExpansion:
+Une entropie proche de 8 indique donc que toutes les valeurs d'octets apparaissent avec une probabilité presque identique, ce qui correspond au comportement attendu d'un chiffrement efficace.
 
-Temps execution chiffrement : 0.209 secondes, pour un débit de  4354955 o/s
-Temps execution dechiffrement : 0.797 secondes, pour un débit de  1144319 o/s
+### Conclusion
 
-graphe_3 decrypt1
+Les résultats obtenus sont cohérents avec la théorie.
 
-On voit aussi que xtimes est utilisé beaucoup de fois.
-En regardant le code, on voit que des appels à xtimes sont inutiles et répétés au sein de la fonction. En corrigeant les codes de InvMixcolumns, InvMixcolumns_eq et Mixcolumns, on a pour la version avec déchiffrement non-equivalent:
+- Le mode ECB améliore l'entropie de l'image, mais conserve encore une partie de sa structure interne. Son entropie reste limitée à environ 7,0.
+- Le mode CBC atteint une entropie de 7,999785, extrêmement proche de la valeur maximale théorique de 8.
 
-Temps execution chiffrement : 0.132 secondes, pour un débit de  6908603 o/s
-Temps execution dechiffrement : 0.209 secondes, pour un débit de  4368806 o/s
-
-Pour le dechiffrement equivalent: 
-
-Temps execution chiffrement : 0.132 secondes, pour un débit de  6890187 o/s
-Temps execution dechiffrement : 0.211 secondes, pour un débit de  4327926 o/s
-
-On obtient enfin des performances similaires entre EqInvCipher et InvCipher. La perte de temps de xtimes() est résoule.La sous fonction la plus appelée est maintenant 'AddRoundKey'
-
-![text](AES_en_c/pictures/graphique_V2_optimisé)
+Cette différence confirme que le mode CBC masque beaucoup mieux les motifs présents dans les données d'origine et produit un résultat beaucoup plus proche d'un bruit aléatoire. Il constitue donc un choix bien plus sûr pour le chiffrement de données réelles.
 
 
 
-Entropie :
-Image de base (Tux.bmp): 3.94
-Tux chiffré en ECB : 6.9 , mais on reconnait toujours l'image de base
-Tux chiffré en CBC : 7.99... , on atteint presque le maximum et l'image est illisible.
-Cela montre la bien plus grande fiabilité de CBC par rapport à ECB
+## Analyse des performances de l'implémentation AES
+
+Afin d'évaluer les performances de notre implémentation AES, nous avons réalisé plusieurs mesures sur le chiffrement et le déchiffrement de l'image de Tux. Une analyse des temps passés dans les différentes fonctions du programme a ensuite été réalisée à l'aide de *Valgrind* et *KCachegrind*.
+
+### Version avec KeyExpansion calculée une seule fois – EqInvCipher
+
+Dans un premier temps, les clés de ronde sont calculées une seule fois puis réutilisées pour l'ensemble des blocs. Le déchiffrement utilise ici la version équivalente `EqInvCipher`.
+
+Les mesures obtenues sont les suivantes :
+
+| Opération | Temps d'exécution | Débit |
+|------------|------------------|---------|
+| Chiffrement | 0,143 s | 6 367 982 o/s |
+| Déchiffrement | 0,745 s | 1 224 169 o/s |
+
+
+Le profil d'exécution correspondant est présenté ci-dessous :
+
+<figure align="center">
+  <img src="AES_en_c/pictures/graphe1_chiffrement.png" alt="Graphe des performances de EqInvCipher obtenues avec Valgrind et Kcachegrind">
+  <figcaption><em>Figure 1 : Profil de performance de la fonction EqInvCipher avec KeyExpansion calculée une seule fois</em></figcaption>
+</figure>
+
+
+On remarque que le déchiffrement reste nettement plus lent que le chiffrement, malgré l'utilisation de la version équivalente `EqInvCipher` (l'opération InvMixColumns nécessite plus de 213 millions d'appels à xtime).
+
+
+### Version avec KeyExpansion calculée une seule fois – InvCipher
+
+Une seconde série de mesures a été effectuée en utilisant cette fois la version classique `InvCipher` pour le déchiffrement. Les résultats obtenus sont les suivants :
+
+| Opération | Temps d'exécution | Débit |
+|------------|------------------|---------|
+| Chiffrement | 0,144 s | 6 332 605 o/s |
+| Déchiffrement | 0,735 s | 1 240 321 o/s |
+
+Le profil d'exécution associé est présenté ci-dessous :
+
+<figure align="center">
+  <img src="AES_en_c/pictures/graphe2_invcipher.png" alt="Profil d'exécution - InvCipher">
+  <figcaption><em>Figure 2 : Profil de performance de la fonction InvCipher avec KeyExpansion calculée une seule fois</em></figcaption>
+</figure>
+
+De manière assez surprenante, cette version se révèle légèrement plus rapide que celle utilisant `EqInvCipher`. Le grand nombre d'appels à la fonction `xtime()` semble en effet avoir un impact bien plus important sur les performances que le choix entre les deux variantes de déchiffrement. Dans notre implémentation logicielle en C, `EqInvCipher` n'apporte donc pas de gain mesurable. Son intérêt apparaît surtout dans le cadre d'implémentations matérielles, où il permet de réutiliser les mêmes blocs de calcul pour le chiffrement et le déchiffrement.
+
+
+### Version avec recalcul de KeyExpansion à chaque bloc – EqInvCipher
+
+Afin de mesurer l'impact de l'expansion de clé, nous avons ensuite modifié l'implémentation de façon à recalculer `KeyExpansion` pour chaque bloc traité.
+
+Les résultats obtenus lors du chiffrement de l'image de Tux avec `EqInvCipher` sont les suivants :
+
+| Opération | Temps d'exécution | Débit |
+|------------|------------------|---------|
+| Chiffrement | 0,209 s | 4 366 737 o/s |
+| Déchiffrement | 1,440 s | 633 278 o/s |
+
+Le profil correspondant est présenté ci-dessous :
+
+<figure align="center">
+  <img src="AES_en_c/pictures/graphe3_eqcipher_repkey.png" alt="Profil des performances - EqInvCipher avec KeyExpansion répétée">
+  <figcaption><em>Figure 3 : Profil de performance de la fonction EqInvCipher avec KeyExpansion répétée.</em></figcaption>
+</figure>
+
+L'impact est immédiat : le débit chute fortement, en particulier lors du déchiffrement où il est pratiquement divisé par deux. Cette expérience confirme qu'il est préférable de calculer les clés de ronde une seule fois puis de les conserver en mémoire. L'analyse du graphe montre que cette perte de performances provient en grande partie de `EqKeyExpansion`, qui applique `InvMixColumns` lors de la préparation des clés. Cela génère un grand nombre d'appels supplémentaires à `xtime()`, déjà responsable d'une part importante du temps d'exécution.
+
+
+### Version avec recalcul de KeyExpansion à chaque bloc – InvCipher
+
+Les mêmes mesures ont été réalisées avec la version classique `InvCipher` (utilisation d'un tableau *decryption word*). Les résultats obtenus sont les suivants :
+
+| Opération | Temps d'exécution | Débit |
+|------------|------------------|---------|
+| Chiffrement | 0,209 s | 4 354 955 o/s |
+| Déchiffrement | 0,797 s | 1 144 319 o/s |
+
+Le profil d'exécution est présenté ci-dessous :
+
+<figure align="center">
+  <img src="AES_en_c/pictures/graphe3_decrypt1.png" alt="Profil des performances - InvCipher avec KeyExpansion répétée">
+  <figcaption><em>Figure 4 : Profil de performance de la fonction InvCipher avec KeyExpansion répétée.</em></figcaption>
+</figure>
+
+L'analyse du profil met en évidence un nombre extrêmement élevé d'appels à la fonction `xtime()`, utilisée pour effectuer les multiplications dans le corps fini `GF(2^8)`.
+
+En examinant le code plus en détail, nous avons constaté que certaines valeurs étaient recalculées plusieurs fois au sein des fonctions `MixColumns`, `InvMixColumns` et `InvMixColumns_eq`. Plusieurs appels à `xtime()` étaient donc redondants et pouvaient être supprimés.
+
+### Optimisation des fonctions MixColumns et InvMixColumns
+
+Après réécriture de ces fonctions afin d'éviter les calculs répétés, les performances ont été réévaluées.
+
+Pour la version utilisant `InvCipher`, nous obtenons :
+
+| Opération | Temps d'exécution | Débit |
+|------------|------------------|---------|
+| Chiffrement | 0,132 s | 6 908 603 o/s |
+| Déchiffrement | 0,209 s | 4 368 806 o/s |
+
+Pour la version utilisant `EqInvCipher`, nous obtenons :
+
+| Opération | Temps d'exécution | Débit |
+|------------|------------------|---------|
+| Chiffrement | 0,132 s | 6 890 187 o/s |
+| Déchiffrement | 0,211 s | 4 327 926 o/s |
+
+
+
+<figure align="center">
+  <img src="AES_en_c/pictures/graphe4_optimise.png" alt="Profil des performances - Après optimisation">
+  <figcaption><em>Figure 5 : Profil d'exécution après optimisation.</em></figcaption>
+</figure>
+
+Après optimisation, le nombre d'appels à `xtime()` dans `InvMixColumns` est passé de plus de 213 millions à environ 35,5 millions. Cette réduction allège considérablement la charge de calcul et se traduit par une nette amélioration des performances. Le gain est particulièrement visible lors du déchiffrement, dont le débit est multiplié par plus de trois dans certains cas.
+
+Les performances obtenues avec `EqInvCipher` et `InvCipher` deviennent désormais quasiment identiques. Cela montre que les écarts observés précédemment ne provenaient pas réellement des deux méthodes de déchiffrement elles-mêmes, mais plutôt du grand nombre d'appels redondants à `xtime()`, qui étaient très coûteuses pour l'algorithme.
+
+
+Cette analyse montre qu'il est souvent plus efficace d'examiner en détail le comportement du programme avant de chercher à modifier l'algorithme lui-même. Dans notre cas, une simple optimisation locale a finalement apporté des gains bien plus importants que le choix entre les variantes `EqInvCipher` et `InvCipher`.
+
+</details>
