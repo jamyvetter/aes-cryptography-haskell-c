@@ -8,7 +8,7 @@
 
 - **Institution**: Grenoble INP – Esisar
 - **Course**: PX222 Maths-Info (Algebra & Cryptography)
-- **Authors**: Jamyson Vetter & Siméon Studer
+- **Authors**: [Jamyson Vetter](https://github.com/jamyvetter) & [Siméon Studer](https://github.com/hiiiiiiiiiboux)
 - **Technical Report**: Available on [jamyvetter.net](https://jamyvetter.net/projects/aes-cryptography/)
 
 ---
